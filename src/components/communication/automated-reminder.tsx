@@ -65,6 +65,7 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
   const selectedTenant = tenants.find((t) => t.id === selectedTenantId);
 
   const bulkGroups = [
+    { id: 'all', name: 'All Tenants' },
     { id: 'arrears', name: 'Tenants in Arrears' },
     { id: 'pending', name: 'Tenants with Pending Payments' },
     ...properties.map(p => ({id: `prop-${p.id}`, name: `All Tenants in ${p.name}`})),
@@ -122,7 +123,9 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
     if (recipientType === 'individual' && selectedTenant) {
         recipients.push(selectedTenant);
     } else if (recipientType === 'group' && groupId) {
-        if (groupId === 'arrears') {
+        if (groupId === 'all') {
+            recipients = tenants;
+        } else if (groupId === 'arrears') {
             recipients = tenants.filter(t => t.rentStatus === 'Overdue');
         } else if (groupId === 'pending') {
             recipients = tenants.filter(t => t.rentStatus === 'Pending');
