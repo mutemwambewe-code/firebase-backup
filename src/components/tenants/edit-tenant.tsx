@@ -65,6 +65,7 @@ export function EditTenant({ tenant, children }: EditTenantProps) {
     const updatedTenant: Tenant = {
       ...tenant,
       ...values,
+      avatarUrl: avatarPreview || values.avatarUrl || '',
     };
     updateTenant(updatedTenant);
     toast({
@@ -322,5 +323,3 @@ export function EditTenant({ tenant, children }: EditTenantProps) {
     </Dialog>
   );
 }
-
-    
