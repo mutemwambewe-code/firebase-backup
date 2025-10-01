@@ -22,9 +22,10 @@ import { useToast } from '@/hooks/use-toast';
 import type { Tenant } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import Image from 'next/image';
-import { Upload } from 'lucide-react';
+import { Upload, Trash2, MoreVertical } from 'lucide-react';
 import { ScrollArea } from '../ui/scroll-area';
 import { useProperties } from '../properties/property-provider';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '../ui/dropdown-menu';
 
 const formSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -63,7 +64,7 @@ export function EditTenant({ tenant, children }: EditTenantProps) {
     const updatedTenant: Tenant = {
       ...tenant,
       ...values,
-      avatarUrl: values.avatarUrl || tenant.avatarUrl,
+      avatarUrl: values.avatarUrl,
     };
     updateTenant(updatedTenant);
     toast({
@@ -76,14 +77,19 @@ export function EditTenant({ tenant, children }: EditTenantProps) {
   const handleOpenChange = (isOpen: boolean) => {
       if(isOpen) {
           form.reset(tenant);
-          setAvatarPreview(null);
+          setAvatarPreview(tenant.avatarUrl);
       }
       setOpen(isOpen);
   }
 
-  const handleAvatarClick = () => {
+  const handleUploadClick = () => {
     fileInputRef.current?.click();
   };
+  
+  const handleDeletePhoto = () => {
+    setAvatarPreview('');
+    form.setValue('avatarUrl', '');
+  }
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -98,6 +104,8 @@ export function EditTenant({ tenant, children }: EditTenantProps) {
     }
   };
 
+  const currentAvatar = avatarPreview ?? tenant.avatarUrl;
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogTrigger asChild>{children}</DialogTrigger>
@@ -111,37 +119,52 @@ export function EditTenant({ tenant, children }: EditTenantProps) {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="md:col-span-1 flex justify-center items-start pt-4">
-                        <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
-                            <Avatar className="h-24 w-24">
-                            <AvatarImage asChild src={avatarPreview || tenant.avatarUrl}>
-                                <Image src={avatarPreview || tenant.avatarUrl} alt={tenant.name} width={96} height={96} />
-                            </AvatarImage>
-                            <AvatarFallback className="text-3xl">
-                                {tenant.name.split(' ').map((n) => n[0]).join('')}
-                            </AvatarFallback>
-                            </Avatar>
-                            <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Upload className="h-8 w-8 text-white" />
-                            </div>
-                            <FormField
-                            control={form.control}
-                            name="avatarUrl"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormControl>
-                                    <Input 
-                                    type="file" 
-                                    className="hidden" 
-                                    ref={fileInputRef} 
-                                    onChange={handleFileChange} 
-                                    accept="image/*" 
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                            />
-                        </div>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <div className="relative group cursor-pointer">
+                                    <Avatar className="h-24 w-24">
+                                    <AvatarImage asChild src={currentAvatar}>
+                                        <Image src={currentAvatar} alt={tenant.name} width={96} height={96} />
+                                    </AvatarImage>
+                                    <AvatarFallback className="text-3xl">
+                                        {tenant.name.split(' ').map((n) => n[0]).join('')}
+                                    </AvatarFallback>
+                                    </Avatar>
+                                    <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <MoreVertical className="h-8 w-8 text-white" />
+                                    </div>
+                                </div>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                                <DropdownMenuItem onSelect={handleUploadClick}>
+                                    <Upload className="mr-2" /> Upload new photo
+                                </DropdownMenuItem>
+                                {currentAvatar && (
+                                    <DropdownMenuItem onSelect={handleDeletePhoto} className="text-destructive">
+                                        <Trash2 className="mr-2" /> Delete photo
+                                    </DropdownMenuItem>
+                                )}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        <FormField
+                        control={form.control}
+                        name="avatarUrl"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormControl>
+                                <Input 
+                                type="file" 
+                                className="hidden" 
+                                ref={fileInputRef} 
+                                onChange={handleFileChange} 
+                                accept="image/*" 
+                                />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
                     </div>
 
                     <div className="md:col-span-2 grid grid-cols-2 gap-4">
