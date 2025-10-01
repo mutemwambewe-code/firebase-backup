@@ -57,8 +57,10 @@ export function EditTenant({ tenant, children }: EditTenantProps) {
     defaultValues: tenant,
   });
 
-
   function onSubmit(values: FormData) {
+    // The rentStatus from the form is now a manual override.
+    // The automatic status logic will be reapplied on next load, 
+    // but this allows for temporary manual changes.
     const updatedTenant: Tenant = {
       ...tenant,
       ...values,
@@ -265,8 +267,8 @@ export function EditTenant({ tenant, children }: EditTenantProps) {
               name="rentStatus"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Rent Status</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormLabel>Rent Status (Manual Override)</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select rent status" />

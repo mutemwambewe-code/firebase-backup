@@ -20,7 +20,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useTenants } from './tenant-provider';
 import { useToast } from '@/hooks/use-toast';
 import type { Tenant, Payment } from '@/lib/types';
-import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
 const formSchema = z.object({
@@ -50,6 +49,17 @@ export function LogPayment({ tenant, children }: LogPaymentProps) {
     },
   });
 
+  const handleOpenChange = (isOpen: boolean) => {
+    if (isOpen) {
+        form.reset({
+            amount: tenant.rentAmount,
+            date: format(new Date(), 'yyyy-MM-dd'),
+            method: 'Mobile Money',
+        });
+    }
+    setOpen(isOpen);
+  }
+
   function onSubmit(values: FormData) {
     const newPayment: Payment = {
       ...values,
@@ -61,15 +71,10 @@ export function LogPayment({ tenant, children }: LogPaymentProps) {
       description: `Payment of ZMW ${newPayment.amount.toLocaleString()} for ${tenant.name} has been recorded.`,
     });
     setOpen(false);
-    form.reset({
-      amount: tenant.rentAmount,
-      date: format(new Date(), 'yyyy-MM-dd'),
-      method: 'Mobile Money',
-    });
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
