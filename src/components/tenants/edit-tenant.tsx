@@ -105,182 +105,177 @@ export function EditTenant({ tenant, children }: EditTenantProps) {
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-             <div className="flex justify-center">
-              <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
-                <Avatar className="h-24 w-24">
-                  <AvatarImage asChild src={avatarPreview || tenant.avatarUrl}>
-                    <Image src={avatarPreview || tenant.avatarUrl} alt={tenant.name} width={96} height={96} />
-                  </AvatarImage>
-                  <AvatarFallback className="text-3xl">
-                    {tenant.name.split(' ').map((n) => n[0]).join('')}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Upload className="h-8 w-8 text-white" />
-                </div>
-                <FormField
-                  control={form.control}
-                  name="avatarUrl"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input 
-                          type="file" 
-                          className="hidden" 
-                          ref={fileInputRef} 
-                          onChange={handleFileChange} 
-                          accept="image/*" 
+             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="md:col-span-1 flex justify-center items-start">
+                    <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
+                        <Avatar className="h-24 w-24">
+                        <AvatarImage asChild src={avatarPreview || tenant.avatarUrl}>
+                            <Image src={avatarPreview || tenant.avatarUrl} alt={tenant.name} width={96} height={96} />
+                        </AvatarImage>
+                        <AvatarFallback className="text-3xl">
+                            {tenant.name.split(' ').map((n) => n[0]).join('')}
+                        </AvatarFallback>
+                        </Avatar>
+                        <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Upload className="h-8 w-8 text-white" />
+                        </div>
+                        <FormField
+                        control={form.control}
+                        name="avatarUrl"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormControl>
+                                <Input 
+                                type="file" 
+                                className="hidden" 
+                                ref={fileInputRef} 
+                                onChange={handleFileChange} 
+                                accept="image/*" 
+                                />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
                         />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
+                    </div>
+                </div>
 
-            <div className="grid grid-cols-2 gap-4">
-                <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                    <FormItem className="col-span-2">
-                    <FormLabel>Full Name</FormLabel>
-                    <FormControl>
-                        <Input placeholder="e.g. John Doe" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-                <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                        <Input placeholder="email@example.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-                <FormField
-                control={form.control}
-                name="phone"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Phone Number</FormLabel>
-                    <FormControl>
-                        <Input placeholder="+260 9..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="property"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Property</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a property" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {properties.map(p => <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-                <FormField
-                control={form.control}
-                name="unit"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Unit</FormLabel>
-                    <FormControl>
-                        <Input placeholder="e.g. A01" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-                <FormField
-                control={form.control}
-                name="rentAmount"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Rent Amount (ZMW)</FormLabel>
-                    <FormControl>
-                        <Input type="number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-                <FormField
-                    control={form.control}
-                    name="leaseStartDate"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Lease Start</FormLabel>
-                        <FormControl>
-                            <Input type="date" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="leaseEndDate"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Lease End</FormLabel>
-                        <FormControl>
-                            <Input type="date" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-            </div>
-             <FormField
-              control={form.control}
-              name="rentStatus"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Rent Status (Manual Override)</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select rent status" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Paid">Paid</SelectItem>
-                      <SelectItem value="Pending">Pending</SelectItem>
-                      <SelectItem value="Overdue">Overdue</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                <div className="md:col-span-2 grid grid-cols-2 gap-4">
+                    <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                            <FormItem className="col-span-2">
+                            <FormLabel>Full Name</FormLabel>
+                            <FormControl>
+                                <Input placeholder="e.g. John Doe" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                                <Input placeholder="email@example.com" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="phone"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Phone Number</FormLabel>
+                            <FormControl>
+                                <Input placeholder="+260 9..." {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                     <FormField
+                        control={form.control}
+                        name="property"
+                        render={({ field }) => (
+                            <FormItem className="col-span-2">
+                            <FormLabel>Property</FormLabel>
+                            <Select onValuechange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a property" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                {properties.map(p => <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="unit"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Unit</FormLabel>
+                            <FormControl>
+                                <Input placeholder="e.g. A01" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="rentAmount"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Rent Amount (ZMW)</FormLabel>
+                            <FormControl>
+                                <Input type="number" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                     <FormField
+                        control={form.control}
+                        name="leaseStartDate"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Lease Start</FormLabel>
+                            <FormControl>
+                                <Input type="date" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="leaseEndDate"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Lease End</FormLabel>
+                            <FormControl>
+                                <Input type="date" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                     <FormField
+                        control={form.control}
+                        name="rentStatus"
+                        render={({ field }) => (
+                            <FormItem className="col-span-2">
+                            <FormLabel>Rent Status (Manual Override)</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select rent status" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                <SelectItem value="Paid">Paid</SelectItem>
+                                <SelectItem value="Pending">Pending</SelectItem>
+                                <SelectItem value="Overdue">Overdue</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+             </div>
 
             <DialogFooter>
               <Button type="submit">Save Changes</Button>
