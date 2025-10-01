@@ -16,8 +16,10 @@ import { useTenants } from '../tenants/tenant-provider';
 const getPastSixMonths = () => {
   const months = [];
   const date = new Date();
+  date.setDate(1);
   for (let i = 0; i < 6; i++) {
-    months.unshift(new Date(date.getFullYear(), date.getMonth() - i, 1));
+    months.unshift(new Date(date));
+    date.setMonth(date.getMonth() - 1);
   }
   return months;
 };
@@ -48,18 +50,20 @@ export function RentStatusChart() {
   // Aggregate rent data
   const aggregateRentData = () => {
     const months = getPastSixMonths();
-    const allPayments = tenants.flatMap(t => t.paymentHistory.map(p => ({...p, rentAmount: t.rentAmount})));
+    const allPayments = tenants.flatMap(t => t.paymentHistory);
     
     return months.map(month => {
       const monthKey = month.toLocaleString('default', { month: 'short' });
       const year = month.getFullYear();
       
-      // Calculate total due for that month based on active leases
-      const totalRentDue = tenants.filter(t => {
-          const leaseStart = new Date(t.leaseStartDate);
-          const leaseEnd = new Date(t.leaseEndDate);
-          return leaseStart <= month && leaseEnd >= month;
-      }).reduce((acc, tenant) => acc + tenant.rentAmount, 0);
+      const totalRentDue = tenants
+        .filter(t => {
+            const leaseStart = new Date(t.leaseStartDate);
+            const leaseEnd = new Date(t.leaseEndDate);
+            // Ensure the lease is active during any part of the month
+            return leaseStart <= new Date(year, month.getMonth() + 1, 0) && leaseEnd >= month;
+        })
+        .reduce((acc, tenant) => acc + tenant.rentAmount, 0);
 
       const collectedForMonth = allPayments
         .filter(p => {
