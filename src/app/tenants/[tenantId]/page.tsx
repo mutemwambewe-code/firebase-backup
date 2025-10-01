@@ -8,7 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Image from 'next/image';
 import { ArrowLeft, Edit, Mail, MessageSquare, Phone, Trash2 } from 'lucide-react';
 import Link from 'next/link';
@@ -31,7 +30,6 @@ export default function TenantDetailPage() {
   
   const tenantId = params.tenantId as string;
   const tenant = tenants.find((t) => t.id === tenantId);
-  const avatar = tenant ? PlaceHolderImages.find((p) => p.id === tenant.avatarId) : null;
 
   if (!tenant) {
     return (
@@ -75,11 +73,9 @@ export default function TenantDetailPage() {
           <Card>
             <CardHeader className="items-center text-center">
               <Avatar className="h-24 w-24 mb-2">
-                {avatar && (
-                  <AvatarImage asChild src={avatar.imageUrl}>
-                    <Image src={avatar.imageUrl} alt={tenant.name} width={96} height={96} data-ai-hint={avatar.imageHint} />
+                  <AvatarImage asChild src={tenant.avatarUrl}>
+                    <Image src={tenant.avatarUrl} alt={tenant.name} width={96} height={96} />
                   </AvatarImage>
-                )}
                 <AvatarFallback className="text-3xl">
                   {tenant.name.split(' ').map((n) => n[0]).join('')}
                 </AvatarFallback>

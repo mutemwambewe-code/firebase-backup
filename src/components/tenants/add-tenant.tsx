@@ -23,6 +23,7 @@ import { properties } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import type { Tenant } from '@/lib/types';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const formSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -57,10 +58,11 @@ export function AddTenant({ asChild, className }: { asChild?: boolean; className
   });
 
   function onSubmit(values: FormData) {
+    const randomAvatar = PlaceHolderImages[Math.floor(Math.random() * 5)];
     const newTenant: Tenant = {
       ...values,
       id: `t${Date.now()}`,
-      avatarId: `tenant-${(Math.floor(Math.random() * 5) + 1)}`, // random avatar
+      avatarUrl: randomAvatar.imageUrl,
       rentStatus: 'Pending',
       paymentHistorySummary: 'New tenant.',
       paymentHistory: [],

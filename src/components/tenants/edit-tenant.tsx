@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -21,6 +21,9 @@ import { useTenants } from './tenant-provider';
 import { properties } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import type { Tenant } from '@/lib/types';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import Image from 'next/image';
+import { Upload } from 'lucide-react';
 
 const formSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -32,6 +35,7 @@ const formSchema = z.object({
   leaseStartDate: z.string().min(1, 'Lease start date is required.'),
   leaseEndDate: z.string().min(1, 'Lease end date is required.'),
   rentStatus: z.enum(['Paid', 'Pending', 'Overdue']),
+  avatarUrl: z.string(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -45,20 +49,12 @@ export function EditTenant({ tenant, children }: EditTenantProps) {
   const [open, setOpen] = useState(false);
   const { updateTenant } = useTenants();
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: tenant.name,
-      email: tenant.email,
-      phone: tenant.phone,
-      property: tenant.property,
-      unit: tenant.unit,
-      rentAmount: tenant.rentAmount,
-      leaseStartDate: tenant.leaseStartDate,
-      leaseEndDate: tenant.leaseEndDate,
-      rentStatus: tenant.rentStatus,
-    },
+    defaultValues: tenant,
   });
 
 
@@ -77,31 +73,73 @@ export function EditTenant({ tenant, children }: EditTenantProps) {
   
   const handleOpenChange = (isOpen: boolean) => {
       if(isOpen) {
-          form.reset({
-            name: tenant.name,
-            email: tenant.email,
-            phone: tenant.phone,
-            property: tenant.property,
-            unit: tenant.unit,
-            rentAmount: tenant.rentAmount,
-            leaseStartDate: tenant.leaseStartDate,
-            leaseEndDate: tenant.leaseEndDate,
-            rentStatus: tenant.rentStatus,
-        });
+          form.reset(tenant);
+          setAvatarPreview(null);
       }
       setOpen(isOpen);
   }
 
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const dataUrl = reader.result as string;
+        setAvatarPreview(dataUrl);
+        form.setValue('avatarUrl', dataUrl);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Edit Tenant</DialogTitle>
           <DialogDescription>Update the details for {tenant.name}.</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+             <div className="flex justify-center">
+              <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
+                <Avatar className="h-24 w-24">
+                  <AvatarImage asChild src={avatarPreview || tenant.avatarUrl}>
+                    <Image src={avatarPreview || tenant.avatarUrl} alt={tenant.name} width={96} height={96} />
+                  </AvatarImage>
+                  <AvatarFallback className="text-3xl">
+                    {tenant.name.split(' ').map((n) => n[0]).join('')}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Upload className="h-8 w-8 text-white" />
+                </div>
+                <FormField
+                  control={form.control}
+                  name="avatarUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input 
+                          type="file" 
+                          className="hidden" 
+                          ref={fileInputRef} 
+                          onChange={handleFileChange} 
+                          accept="image/*" 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
                 <FormField
                 control={form.control}

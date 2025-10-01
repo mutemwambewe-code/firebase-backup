@@ -1,4 +1,13 @@
 import type { Tenant, Property, OverviewStats } from './types';
+import { PlaceHolderImages } from './placeholder-images';
+
+const tenantImages = {
+  t1: PlaceHolderImages.find(p => p.id === 'tenant-1')?.imageUrl,
+  t2: PlaceHolderImages.find(p => p.id === 'tenant-2')?.imageUrl,
+  t3: PlaceHolderImages.find(p => p.id === 'tenant-3')?.imageUrl,
+  t4: PlaceHolderImages.find(p => p.id === 'tenant-4')?.imageUrl,
+  t5: PlaceHolderImages.find(p => p.id === 'tenant-5')?.imageUrl,
+}
 
 export const properties: Property[] = [
   { id: 'prop1', name: 'Kalingalinga Complex', units: 10, occupied: 8 },
@@ -9,7 +18,7 @@ export const tenants: Tenant[] = [
   {
     id: 't1',
     name: 'Bwalya Chanda',
-    avatarId: 'tenant-1',
+    avatarUrl: tenantImages.t1!,
     property: 'Kalingalinga Complex',
     unit: 'A01',
     phone: '+260 977 123456',
@@ -27,7 +36,7 @@ export const tenants: Tenant[] = [
   {
     id: 't2',
     name: 'Thandiwe Zulu',
-    avatarId: 'tenant-2',
+    avatarUrl: tenantImages.t2!,
     property: 'Kalingalinga Complex',
     unit: 'B03',
     phone: '+260 966 789012',
@@ -45,7 +54,7 @@ export const tenants: Tenant[] = [
   {
     id: 't3',
     name: 'Chisenga Banda',
-    avatarId: 'tenant-3',
+    avatarUrl: tenantImages.t3!,
     property: 'Woodlands Apartments',
     unit: 'W02',
     phone: '+260 955 345678',
@@ -63,7 +72,7 @@ export const tenants: Tenant[] = [
   {
     id: 't4',
     name: 'Lumbani Phiri',
-    avatarId: 'tenant-4',
+    avatarUrl: tenantImages.t4!,
     property: 'Woodlands Apartments',
     unit: 'W05',
     phone: '+260 777 901234',
@@ -81,7 +90,7 @@ export const tenants: Tenant[] = [
   {
     id: 't5',
     name: 'Mumbi Mwansa',
-    avatarId: 'tenant-5',
+    avatarUrl: tenantImages.t5!,
     property: 'Kalingalinga Complex',
     unit: 'C02',
     phone: '+260 977 567890',

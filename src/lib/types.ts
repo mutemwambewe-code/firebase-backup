@@ -1,7 +1,7 @@
 export type Tenant = {
   id: string;
   name: string;
-  avatarId: string;
+  avatarUrl: string; // Was avatarId
   property: string;
   unit: string;
   phone: string;

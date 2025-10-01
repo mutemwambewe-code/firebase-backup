@@ -4,7 +4,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { Tenant } from '@/lib/types';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
 import { Phone, Mail, MoreVertical } from 'lucide-react';
 import Link from 'next/link';
@@ -23,18 +22,15 @@ const statusStyles = {
 };
 
 export function TenantCard({ tenant }: TenantCardProps) {
-  const avatar = PlaceHolderImages.find((p) => p.id === tenant.avatarId);
 
   return (
     <Card className="flex flex-col transition-all hover:shadow-md">
        <Link href={`/tenants/${tenant.id}`} className="flex flex-col flex-grow">
         <CardHeader className="flex flex-row items-start gap-4">
             <Avatar className="h-14 w-14">
-            {avatar && (
-                <AvatarImage asChild src={avatar.imageUrl}>
-                    <Image src={avatar.imageUrl} alt={tenant.name} width={56} height={56} data-ai-hint={avatar.imageHint} />
+                <AvatarImage asChild src={tenant.avatarUrl}>
+                    <Image src={tenant.avatarUrl} alt={tenant.name} width={56} height={56} />
                 </AvatarImage>
-            )}
             <AvatarFallback className="text-xl">
                 {tenant.name
                 .split(' ')
@@ -88,7 +84,9 @@ export function TenantCard({ tenant }: TenantCardProps) {
                     </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <EditTenant tenant={tenant} />
+                <EditTenant tenant={tenant}>
+                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Edit</DropdownMenuItem>
+                </EditTenant>
                 <DropdownMenuItem className="text-destructive">
                     Delete Tenant
                 </DropdownMenuItem>
