@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -18,13 +18,13 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTenants } from './tenant-provider';
-import { properties } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import type { Tenant } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import Image from 'next/image';
 import { Upload } from 'lucide-react';
 import { ScrollArea } from '../ui/scroll-area';
+import { useProperties } from '../properties/property-provider';
 
 const formSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -49,6 +49,7 @@ interface EditTenantProps {
 export function EditTenant({ tenant, children }: EditTenantProps) {
   const [open, setOpen] = useState(false);
   const { updateTenant } = useTenants();
+  const { properties } = useProperties();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);

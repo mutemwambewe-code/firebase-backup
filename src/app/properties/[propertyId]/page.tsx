@@ -1,20 +1,21 @@
 
 'use client';
 
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useTenants } from '@/components/tenants/tenant-provider';
-import { properties as allProperties } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Image from 'next/image';
-import { ArrowLeft, Building, Edit, MapPin, Users } from 'lucide-react';
+import { ArrowLeft, Building, MapPin, Users } from 'lucide-react';
 import Link from 'next/link';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import { AddTenant } from '@/components/tenants/add-tenant';
+import { useProperties } from '@/components/properties/property-provider';
+import { EditProperty } from '@/components/properties/edit-property';
 
 const statusStyles = {
   Paid: 'bg-accent text-accent-foreground border-transparent',
@@ -24,11 +25,11 @@ const statusStyles = {
 
 export default function PropertyDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const { tenants } = useTenants();
+  const { properties } = useProperties();
   
   const propertyId = params.propertyId as string;
-  const property = allProperties.find((p) => p.id === propertyId);
+  const property = properties.find((p) => p.id === propertyId);
 
   if (!property) {
     return (
@@ -62,10 +63,7 @@ export default function PropertyDetailPage() {
                     Back to Properties
                 </Button>
             </Link>
-            <Button onClick={() => alert('Edit functionality coming soon!')}>
-                <Edit className="mr-2 h-4 w-4" />
-                Edit Property
-            </Button>
+            <EditProperty property={property} />
         </div>
         
         <Card>
@@ -123,7 +121,7 @@ export default function PropertyDetailPage() {
                   </TableHeader>
                   <TableBody>
                     {tenantsInProperty.map((tenant) => (
-                      <TableRow key={tenant.id} onClick={() => router.push(`/tenants/${tenant.id}`)} className="cursor-pointer">
+                      <TableRow key={tenant.id} className="cursor-pointer">
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar className="h-10 w-10">
@@ -132,7 +130,7 @@ export default function PropertyDetailPage() {
                                 </AvatarImage>
                                 <AvatarFallback>{tenant.name.split(' ').map((n) => n[0]).join('')}</AvatarFallback>
                             </Avatar>
-                            <span className="font-medium">{tenant.name}</span>
+                            <Link href={`/tenants/${tenant.id}`} className="font-medium hover:underline">{tenant.name}</Link>
                           </div>
                         </TableCell>
                         <TableCell>{tenant.unit}</TableCell>

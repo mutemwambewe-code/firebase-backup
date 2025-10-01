@@ -22,11 +22,11 @@ import { Calendar } from '@/components/ui/calendar';
 import { CalendarIcon, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import { useTenants } from './tenant-provider';
-import { properties } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import type { Tenant } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useProperties } from '../properties/property-provider';
 
 const formSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -48,6 +48,7 @@ type FormData = z.infer<typeof formSchema>;
 export function AddTenant({ asChild, className }: { asChild?: boolean; className?: string }) {
   const [open, setOpen] = useState(false);
   const { addTenant } = useTenants();
+  const { properties } = useProperties();
   const { toast } = useToast();
 
   const form = useForm<FormData>({

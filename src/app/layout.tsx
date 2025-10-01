@@ -4,6 +4,7 @@ import { AppProviders } from '@/components/providers/app-providers';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Toaster } from "@/components/ui/toaster"
 import { TenantProvider } from '@/components/tenants/tenant-provider';
+import { PropertyProvider } from '@/components/properties/property-provider';
 
 export const metadata: Metadata = {
   title: 'PropBot Zambia',
@@ -24,9 +25,11 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <AppProviders>
-          <TenantProvider>
-            <AppLayout>{children}</AppLayout>
-          </TenantProvider>
+          <PropertyProvider>
+            <TenantProvider>
+              <AppLayout>{children}</AppLayout>
+            </TenantProvider>
+          </PropertyProvider>
           <Toaster />
         </AppProviders>
       </body>

@@ -9,17 +9,20 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { Input } from '../ui/input';
 import { Progress } from '../ui/progress';
-import { properties as allProperties } from '@/lib/data';
 import { useTenants } from '../tenants/tenant-provider';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useProperties } from './property-provider';
+import { useToast } from '@/hooks/use-toast';
 
 export function PropertyList() {
   const [searchTerm, setSearchTerm] = useState('');
   const { tenants } = useTenants();
+  const { properties, isInitialized } = useProperties();
   const router = useRouter();
+  const { toast } = useToast();
 
-  const propertiesWithOccupancy = allProperties.map(p => {
+  const propertiesWithOccupancy = properties.map(p => {
     const occupiedCount = tenants.filter(t => t.property === p.name).length;
     return { ...p, occupied: occupiedCount };
   });
@@ -29,20 +32,28 @@ export function PropertyList() {
   );
 
   const handleRemoveProperty = (id: string) => {
-    // This is a mock implementation. In a real app, you'd update the state.
-    alert(`Removing property ${id}. This is a mock action.`);
+    toast({
+        variant: 'destructive',
+        title: 'Feature coming soon!',
+        description: 'The ability to delete properties is not yet implemented.',
+    });
   };
   
   const handleRowClick = (propertyId: string) => {
     router.push(`/properties/${propertyId}`);
   };
 
-  if (!allProperties.length) {
+  if (!isInitialized) {
+    // You could add a skeleton loader here
+    return <div>Loading properties...</div>;
+  }
+
+  if (!properties.length) {
     return (
         <div className="text-center py-16 border-2 border-dashed rounded-lg">
             <h2 className="text-xl font-semibold">No properties yet</h2>
             <p className="text-muted-foreground mt-2">Add your first property to get started.</p>
-            <Button className="mt-4">
+            <Button className="mt-4" onClick={() => alert('Add property coming soon!')}>
                 <Plus className="mr-2" />
                 Add Property
             </Button>
@@ -69,7 +80,7 @@ export function PropertyList() {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
-                    <Button className='w-full sm:w-auto'>
+                    <Button className='w-full sm:w-auto' onClick={() => alert('Add property coming soon!')}>
                         <Plus className="mr-2" />
                         Add Property
                     </Button>

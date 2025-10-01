@@ -4,17 +4,17 @@
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { DollarSign, Home, Users, AlertTriangle, FileText, Clock } from 'lucide-react';
-import { properties } from '@/lib/data';
 import { cn } from '@/lib/utils';
 import { TrendingUp } from 'lucide-react';
 import { useTenants } from '../tenants/tenant-provider';
 import { isWithinInterval, addDays, startOfMonth, parseISO, isBefore, endOfMonth } from 'date-fns';
-
-const totalUnits = properties.reduce((sum, prop) => sum + prop.units, 0);
-
+import { useProperties } from '../properties/property-provider';
 
 export function OverviewCards() {
     const { tenants } = useTenants();
+    const { properties } = useProperties();
+    const totalUnits = properties.reduce((sum, prop) => sum + prop.units, 0);
+
     const occupiedUnits = tenants.length;
     const overdueTenants = tenants.filter(t => t.rentStatus === 'Overdue').length;
 
