@@ -13,7 +13,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useSearchParams } from 'next/navigation';
-import { Loader2, Send, Wand2 } from 'lucide-react';
+import { Loader2, Send, Wand2, Eye, Pencil } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
@@ -23,6 +23,8 @@ import { Form, FormItem, FormControl } from '../ui/form';
 import { useMessageLog } from './message-log-provider';
 import type { Tenant } from '@/lib/types';
 import { useProperties } from '../properties/property-provider';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { MessageTemplates } from './message-templates';
 
 const formSchema = z.object({
   tenantId: z.string().optional(),
@@ -39,7 +41,9 @@ interface AutomatedReminderProps {
     setMessage: (message: string) => void;
 }
 
-const replacePlaceholders = (message: string, tenant: Tenant): string => {
+const replacePlaceholders = (message: string, tenant?: Tenant): string => {
+    if (!tenant) return message;
+
     const arrears = tenant.rentStatus === 'Overdue' ? tenant.rentAmount : 0;
     const dueDate = new Date(); // Using today as a proxy for due date
     dueDate.setDate(5); // Assuming due date is the 5th
@@ -189,11 +193,12 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
 
   return (
     <Card className="mt-4 border-none shadow-none">
-      <CardHeader>
-        <CardTitle>Compose New Message</CardTitle>
-      </CardHeader>
       <Form {...form}>
         <form onSubmit={handleSubmit(onSubmit)}>
+            <CardHeader>
+                <CardTitle>Compose Message</CardTitle>
+                <CardDescription>Select recipients and write your message.</CardDescription>
+            </CardHeader>
           <CardContent className="space-y-6">
             <Controller
               name="recipientType"
@@ -288,29 +293,44 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
 
 
             <div className="space-y-2">
-              <Label htmlFor="message">Message</Label>
-              <div className="flex flex-wrap gap-2 mb-2">
-                  {tags.map(tag => (
-                      <Badge 
-                          key={tag}
-                          variant="outline"
-                          className="cursor-pointer hover:bg-accent"
-                          onClick={() => handleTagClick(tag)}
-                      >
-                          {tag.replace(/_/g, ' ')}
-                      </Badge>
-                  ))}
-              </div>
-              <Textarea 
-                  id="message" 
-                  value={message} 
-                  onChange={(e) => setMessage(e.target.value)} 
-                  rows={6}
-                  placeholder="Type your message here or generate one with AI. Use tags like {{name}}."
-              />
-              <p className="text-xs text-muted-foreground">
-                  {message.length} chars ({Math.ceil(message.length / 160)} SMS)
-              </p>
+                <Tabs defaultValue="write">
+                    <TabsList className='grid w-full grid-cols-2'>
+                        <TabsTrigger value="write"><Pencil className='mr-2'/> Write</TabsTrigger>
+                        <TabsTrigger value="preview" disabled={recipientType !== 'individual' || !selectedTenant}><Eye className='mr-2' /> Preview</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="write" className='mt-4'>
+                        <div className="flex flex-wrap gap-2 mb-2">
+                            {tags.map(tag => (
+                                <Badge 
+                                    key={tag}
+                                    variant="outline"
+                                    className="cursor-pointer hover:bg-accent"
+                                    onClick={() => handleTagClick(tag)}
+                                >
+                                    {tag.replace(/_/g, ' ')}
+                                </Badge>
+                            ))}
+                        </div>
+                        <Textarea 
+                            id="message" 
+                            value={message} 
+                            onChange={(e) => setMessage(e.target.value)} 
+                            rows={6}
+                            placeholder="Type your message here or generate one with AI. Use tags like {{name}}."
+                        />
+                        <p className="text-xs text-muted-foreground mt-2">
+                            {message.length} chars ({Math.ceil(message.length / 160)} SMS)
+                        </p>
+                    </TabsContent>
+                    <TabsContent value="preview" className='mt-4'>
+                        <div className="p-4 border rounded-md bg-muted/20 min-h-[170px] text-sm whitespace-pre-wrap">
+                            {replacePlaceholders(message, selectedTenant)}
+                        </div>
+                         <p className="text-xs text-muted-foreground mt-2">
+                            This is a preview for {selectedTenant?.name}. Placeholders are not shown for bulk groups.
+                        </p>
+                    </TabsContent>
+                </Tabs>
             </div>
             
             {result && (
@@ -324,7 +344,7 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
             )}
 
           </CardContent>
-          <CardFooter className="flex justify-between items-center border-t pt-6 mt-6">
+          <CardFooter className="flex justify-between items-center border-t pt-6">
             <Button type="submit" variant="outline" disabled={isLoading || recipientType === 'group' || !selectedTenantId}>
               {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
               Generate with AI
@@ -336,6 +356,9 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
           </CardFooter>
         </form>
       </Form>
+
+      <MessageTemplates onTemplateSelect={setMessage} />
+
     </Card>
   );
 }

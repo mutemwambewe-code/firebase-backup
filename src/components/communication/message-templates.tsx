@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Clipboard, MoreVertical, Trash2 } from "lucide-react";
+import { MoreVertical, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   Accordion,
@@ -68,12 +68,12 @@ export function MessageTemplates({ onTemplateSelect }: MessageTemplatesProps) {
   }
 
   return (
-    <Card className="mt-4 border-none shadow-none">
+    <Card className="mt-6 border-t pt-6 border-dashed">
         <CardHeader>
             <div className="flex justify-between items-center">
                 <div>
                     <CardTitle>Message Templates</CardTitle>
-                    <CardDescription>Use these templates to quickly compose messages.</CardDescription>
+                    <CardDescription>Select a template to quickly compose a message.</CardDescription>
                 </div>
                 <AddTemplate />
             </div>
