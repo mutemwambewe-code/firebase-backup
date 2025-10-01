@@ -39,7 +39,7 @@ const cardData = [
     icon: AlertTriangle,
     description: 'Require follow-up',
     className: 'text-yellow-600 dark:text-yellow-400',
-    iconClassName: 'text-yellow-500',
+    iconClassName: 'bg-yellow-500/10',
   },
 ];
 
@@ -47,7 +47,7 @@ export function OverviewCards() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {cardData.map((card) => (
-        <Card key={card.title} className="shadow-none">
+        <Card key={card.title}>
           <CardContent className="p-4 flex items-start gap-4">
              <div className={cn("p-3 rounded-lg bg-secondary", card.iconClassName)}>
                 <card.icon className={cn('h-6 w-6 text-muted-foreground', card.className)} />

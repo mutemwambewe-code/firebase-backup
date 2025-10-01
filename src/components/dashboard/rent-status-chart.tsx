@@ -9,7 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { tenants } from '@/lib/data';
 
 const rentData = [
     { month: 'Jan', due: 150000, collected: 125000 },
@@ -42,7 +41,7 @@ export function RentStatusChart() {
               fontSize={12}
               tickLine={false}
               axisLine={false}
-              tickFormatter={(value) => `$${value / 1000}k`}
+              tickFormatter={(value) => `ZMW ${value / 1000}k`}
             />
              <Tooltip
                 contentStyle={{
