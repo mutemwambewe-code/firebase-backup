@@ -60,8 +60,8 @@ export function RentStatusChart() {
         .filter(t => {
             const leaseStart = new Date(t.leaseStartDate);
             const leaseEnd = new Date(t.leaseEndDate);
-            // Ensure the lease is active during any part of the month
-            return leaseStart <= new Date(year, month.getMonth() + 1, 0) && leaseEnd >= month;
+            // Check if the lease is active during the month
+            return leaseStart < new Date(year, month.getMonth() + 1, 1) && leaseEnd >= month;
         })
         .reduce((acc, tenant) => acc + tenant.rentAmount, 0);
 
