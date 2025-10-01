@@ -36,9 +36,9 @@ export default function TenantActivity() {
   return (
     <Card className="shadow-none h-full">
       <CardHeader>
-        <CardTitle>Tenant Status</CardTitle>
+        <CardTitle>Rent Payment Status</CardTitle>
         <CardDescription>
-          Distribution of tenants by lease status.
+          Distribution of tenants by current rent status.
         </CardDescription>
       </CardHeader>
       <CardContent className="h-[300px]">

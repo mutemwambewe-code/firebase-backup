@@ -9,15 +9,45 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { tenants } from '@/lib/data';
 
-const rentData = [
-    { month: 'Jan', due: 150000, collected: 125000 },
-    { month: 'Feb', due: 152000, collected: 148000 },
-    { month: 'Mar', due: 155000, collected: 135000 },
-    { month: 'Apr', due: 153000, collected: 150000 },
-    { month: 'May', due: 156000, collected: 142000 },
-    { month: 'Jun', due: 158000, collected: 155000 },
-];
+// Helper to get past 6 months
+const getPastSixMonths = () => {
+  const months = [];
+  const date = new Date();
+  for (let i = 0; i < 6; i++) {
+    months.unshift(new Date(date.getFullYear(), date.getMonth() - i, 1));
+  }
+  return months;
+};
+
+// Aggregate rent data
+const aggregateRentData = () => {
+  const months = getPastSixMonths();
+  const allPayments = tenants.flatMap(t => t.paymentHistory.map(p => ({...p, rentAmount: t.rentAmount})));
+  const totalRentDue = tenants.reduce((acc, tenant) => acc + tenant.rentAmount, 0);
+
+  return months.map(month => {
+    const monthKey = month.toLocaleString('default', { month: 'short' });
+    const year = month.getFullYear();
+    
+    const collectedForMonth = allPayments
+      .filter(p => {
+        const paymentDate = new Date(p.date);
+        return paymentDate.getMonth() === month.getMonth() && paymentDate.getFullYear() === year;
+      })
+      .reduce((sum, p) => sum + p.amount, 0);
+
+    return {
+      month: monthKey,
+      due: totalRentDue,
+      collected: collectedForMonth,
+    };
+  });
+};
+
+const rentData = aggregateRentData();
+
 
 const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
