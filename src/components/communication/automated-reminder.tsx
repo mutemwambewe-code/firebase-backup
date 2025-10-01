@@ -19,6 +19,7 @@ import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { Badge } from '../ui/badge';
 import { cn } from '@/lib/utils';
+import { FormItem, FormControl } from '../ui/form';
 
 const formSchema = z.object({
   tenantId: z.string().min(1, 'Please select a tenant.'),
@@ -189,7 +190,7 @@ export function AutomatedReminder() {
                 <Wand2 className="h-4 w-4" />
                 <AlertTitle>AI Suggestion</AlertTitle>
                 <AlertDescription>
-                    Suggested time to send: <strong>{result.sendTime}</strong> via <strong>{result.communicationMethod}</strong>.
+                    Suggested time to send: strong>{result.sendTime}</strong> via <strong>{result.communicationMethod}</strong>.
                 </AlertDescription>
             </Alert>
           )}
