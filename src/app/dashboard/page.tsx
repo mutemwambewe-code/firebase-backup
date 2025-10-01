@@ -16,15 +16,21 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-            <Button variant="outline">
-                <Plus className="mr-2" /> Add Tenant
-            </Button>
-            <Button variant="outline">
-                <MessageSquare className="mr-2" /> Send Message
-            </Button>
-            <Button>
-                <Receipt className="mr-2" /> Record Payment
-            </Button>
+            <Link href="/tenants">
+                <Button variant="outline">
+                    <Plus className="mr-2" /> Add Tenant
+                </Button>
+            </Link>
+            <Link href="/communication">
+                <Button variant="outline">
+                    <MessageSquare className="mr-2" /> Send Message
+                </Button>
+            </Link>
+            <Link href="/tenants">
+                <Button>
+                    <Receipt className="mr-2" /> Record Payment
+                </Button>
+            </Link>
         </div>
       </div>
       
