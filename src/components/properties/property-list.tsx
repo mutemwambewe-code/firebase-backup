@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { properties as allProperties } from '@/lib/data';
 import type { Property } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal, Plus, Search } from 'lucide-react';
@@ -10,11 +9,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { Input } from '../ui/input';
 import { Progress } from '../ui/progress';
+import { properties as allProperties } from '@/lib/data';
+import { useTenants } from '../tenants/tenant-provider';
 
 export function PropertyList() {
   const [searchTerm, setSearchTerm] = useState('');
+  const { tenants } = useTenants();
 
-  const filteredProperties = allProperties.filter((property) =>
+  const propertiesWithOccupancy = allProperties.map(p => {
+    const occupiedCount = tenants.filter(t => t.property === p.name).length;
+    return { ...p, occupied: occupiedCount };
+  });
+
+  const filteredProperties = propertiesWithOccupancy.filter((property) =>
     property.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -76,7 +83,7 @@ export function PropertyList() {
             </TableHeader>
             <TableBody>
               {filteredProperties.map((property) => {
-                  const occupancyRate = (property.occupied / property.units) * 100;
+                  const occupancyRate = property.units > 0 ? (property.occupied / property.units) * 100 : 0;
                   return (
                       <TableRow key={property.id}>
                           <TableCell className="font-medium">{property.name}</TableCell>

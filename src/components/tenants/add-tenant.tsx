@@ -1,0 +1,226 @@
+'use client';
+
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Plus } from 'lucide-react';
+import { useTenants } from './tenant-provider';
+import { properties } from '@/lib/data';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
+import type { Tenant } from '@/lib/types';
+
+const formSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters.'),
+  email: z.string().email('Invalid email address.'),
+  phone: z.string().min(10, 'Phone number seems too short.'),
+  property: z.string().min(1, 'Please select a property.'),
+  unit: z.string().min(1, 'Unit is required.'),
+  rentAmount: z.coerce.number().min(1, 'Rent amount must be positive.'),
+  leaseStartDate: z.string().min(1, 'Lease start date is required.'),
+  leaseEndDate: z.string().min(1, 'Lease end date is required.'),
+});
+
+type FormData = z.infer<typeof formSchema>;
+
+export function AddTenant({ asChild, className }: { asChild?: boolean; className?: string }) {
+  const [open, setOpen] = useState(false);
+  const { addTenant } = useTenants();
+  const { toast } = useToast();
+
+  const form = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      phone: '',
+      property: '',
+      unit: '',
+      rentAmount: 0,
+      leaseStartDate: '',
+      leaseEndDate: '',
+    },
+  });
+
+  function onSubmit(values: FormData) {
+    const newTenant: Tenant = {
+      ...values,
+      id: `t${Date.now()}`,
+      avatarId: `tenant-${(Math.floor(Math.random() * 5) + 1)}`, // random avatar
+      rentStatus: 'Pending',
+      paymentHistorySummary: 'New tenant.',
+      paymentHistory: [],
+    };
+    addTenant(newTenant);
+    toast({
+      title: 'Tenant Added!',
+      description: `${newTenant.name} has been added to your tenant list.`,
+    });
+    setOpen(false);
+    form.reset();
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        {asChild ? (
+            <span className={cn('cursor-pointer', className)}>
+                <Plus className="mr-2" /> Add Tenant
+            </span>
+        ) : (
+            <Button variant="outline" className={className}>
+                <Plus className="mr-2" /> Add Tenant
+            </Button>
+        )}
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Add New Tenant</DialogTitle>
+          <DialogDescription>Enter the details of the new tenant below.</DialogDescription>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+                <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                    <FormItem className="col-span-2">
+                    <FormLabel>Full Name</FormLabel>
+                    <FormControl>
+                        <Input placeholder="e.g. John Doe" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                        <Input placeholder="email@example.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                        <Input placeholder="+260 9..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="property"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Property</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a property" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {properties.map(p => <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+                <FormField
+                control={form.control}
+                name="unit"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Unit</FormLabel>
+                    <FormControl>
+                        <Input placeholder="e.g. A01" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <FormField
+                control={form.control}
+                name="rentAmount"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Rent Amount (ZMW)</FormLabel>
+                    <FormControl>
+                        <Input type="number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+                <FormField
+                    control={form.control}
+                    name="leaseStartDate"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Lease Start</FormLabel>
+                        <FormControl>
+                            <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="leaseEndDate"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Lease End</FormLabel>
+                        <FormControl>
+                            <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            </div>
+
+            <DialogFooter>
+              <Button type="submit">Save Tenant</Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}

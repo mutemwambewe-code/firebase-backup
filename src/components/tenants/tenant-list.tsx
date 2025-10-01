@@ -3,10 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { TenantCard } from './tenant-card';
-import { tenants as allTenants } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
+import { useTenants } from './tenant-provider';
+import { AddTenant } from './add-tenant';
 
 type FilterStatus = 'All' | 'Paid' | 'Pending' | 'Overdue';
 
@@ -14,6 +15,7 @@ export function TenantList() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const { tenants } = useTenants();
   
   const getFilterFromURL = (): FilterStatus => {
     const filter = searchParams.get('filter');
@@ -41,7 +43,7 @@ export function TenantList() {
     router.push(`${pathname}?${params.toString()}`);
   };
 
-  const filteredTenants = allTenants
+  const filteredTenants = tenants
     .filter((tenant) => {
       if (filter === 'All') return true;
       return tenant.rentStatus === filter;
@@ -50,12 +52,12 @@ export function TenantList() {
       tenant.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-  if (!allTenants.length) {
+  if (!tenants.length) {
     return (
         <div className="text-center py-16 border-2 border-dashed rounded-lg">
             <h2 className="text-xl font-semibold">No tenants yet</h2>
             <p className="text-muted-foreground mt-2">Add your first tenant to get started.</p>
-            <Button className="mt-4">Add Tenant</Button>
+            <AddTenant />
         </div>
     )
   }
@@ -86,6 +88,7 @@ export function TenantList() {
               </Button>
             )
           )}
+          <AddTenant />
         </div>
       </div>
 

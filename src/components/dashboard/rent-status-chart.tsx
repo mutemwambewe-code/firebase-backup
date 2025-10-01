@@ -9,8 +9,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { tenants } from '@/lib/data';
 import { useRouter } from 'next/navigation';
+import { useTenants } from '../tenants/tenant-provider';
 
 // Helper to get past 6 months
 const getPastSixMonths = () => {
@@ -21,39 +21,6 @@ const getPastSixMonths = () => {
   }
   return months;
 };
-
-// Aggregate rent data
-const aggregateRentData = () => {
-  const months = getPastSixMonths();
-  const allPayments = tenants.flatMap(t => t.paymentHistory.map(p => ({...p, rentAmount: t.rentAmount})));
-  
-  return months.map(month => {
-    const monthKey = month.toLocaleString('default', { month: 'short' });
-    const year = month.getFullYear();
-    
-    // Calculate total due for that month based on active leases
-    const totalRentDue = tenants.filter(t => {
-        const leaseStart = new Date(t.leaseStartDate);
-        const leaseEnd = new Date(t.leaseEndDate);
-        return leaseStart <= month && leaseEnd >= month;
-    }).reduce((acc, tenant) => acc + tenant.rentAmount, 0);
-
-    const collectedForMonth = allPayments
-      .filter(p => {
-        const paymentDate = new Date(p.date);
-        return paymentDate.getMonth() === month.getMonth() && paymentDate.getFullYear() === year;
-      })
-      .reduce((sum, p) => sum + p.amount, 0);
-
-    return {
-      month: monthKey,
-      due: totalRentDue,
-      collected: collectedForMonth,
-    };
-  });
-};
-
-const rentData = aggregateRentData();
 
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -76,6 +43,40 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 export function RentStatusChart() {
   const router = useRouter();
+  const { tenants } = useTenants();
+
+  // Aggregate rent data
+  const aggregateRentData = () => {
+    const months = getPastSixMonths();
+    const allPayments = tenants.flatMap(t => t.paymentHistory.map(p => ({...p, rentAmount: t.rentAmount})));
+    
+    return months.map(month => {
+      const monthKey = month.toLocaleString('default', { month: 'short' });
+      const year = month.getFullYear();
+      
+      // Calculate total due for that month based on active leases
+      const totalRentDue = tenants.filter(t => {
+          const leaseStart = new Date(t.leaseStartDate);
+          const leaseEnd = new Date(t.leaseEndDate);
+          return leaseStart <= month && leaseEnd >= month;
+      }).reduce((acc, tenant) => acc + tenant.rentAmount, 0);
+
+      const collectedForMonth = allPayments
+        .filter(p => {
+          const paymentDate = new Date(p.date);
+          return paymentDate.getMonth() === month.getMonth() && paymentDate.getFullYear() === year;
+        })
+        .reduce((sum, p) => sum + p.amount, 0);
+
+      return {
+        month: monthKey,
+        due: totalRentDue,
+        collected: collectedForMonth,
+      };
+    });
+  };
+
+  const rentData = aggregateRentData();
 
   const handleChartClick = () => {
     router.push('/reports');

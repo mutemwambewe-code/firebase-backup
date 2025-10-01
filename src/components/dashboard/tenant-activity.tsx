@@ -7,15 +7,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { tenants } from '@/lib/data';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useRouter } from 'next/navigation';
-
-const statusData = [
-  { name: 'Paid', value: tenants.filter(t => t.rentStatus === 'Paid').length },
-  { name: 'Pending', value: tenants.filter(t => t.rentStatus === 'Pending').length },
-  { name: 'Overdue', value: tenants.filter(t => t.rentStatus === 'Overdue').length },
-];
+import { useTenants } from '../tenants/tenant-provider';
 
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))'];
 
@@ -33,6 +27,14 @@ const CustomTooltip = ({ active, payload }: any) => {
 
 export default function TenantActivity() {
   const router = useRouter();
+  const { tenants } = useTenants();
+
+  const statusData = [
+    { name: 'Paid', value: tenants.filter(t => t.rentStatus === 'Paid').length },
+    { name: 'Pending', value: tenants.filter(t => t.rentStatus === 'Pending').length },
+    { name: 'Overdue', value: tenants.filter(t => t.rentStatus === 'Overdue').length },
+  ];
+
   const totalTenants = statusData.reduce((acc, entry) => acc + entry.value, 0);
   
   const handlePieClick = (data: any) => {
@@ -65,6 +67,7 @@ export default function TenantActivity() {
                     onClick={handlePieClick}
                     className='cursor-pointer'
                     label={({ cx, cy, midAngle, innerRadius, outerRadius, value, index }) => {
+                        if (value === 0) return null;
                         const RADIAN = Math.PI / 180;
                         const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
                         const x  = cx + radius * Math.cos(-midAngle * RADIAN);
