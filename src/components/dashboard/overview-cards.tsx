@@ -1,24 +1,43 @@
+'use client';
+
 import { Card, CardContent } from '@/components/ui/card';
 import { DollarSign, Home, Users, AlertTriangle } from 'lucide-react';
-import { overviewStats } from '@/lib/data';
+import { tenants, properties } from '@/lib/data';
 import { cn } from '@/lib/utils';
 import { TrendingUp } from 'lucide-react';
 
-const occupancyRate = (
-  (overviewStats.occupiedUnits / overviewStats.totalUnits) *
-  100
-).toFixed(1);
+const totalUnits = properties.reduce((sum, prop) => sum + prop.units, 0);
+const occupiedUnits = properties.reduce((sum, prop) => sum + prop.occupied, 0);
+const overdueTenants = tenants.filter(t => t.rentStatus === 'Overdue').length;
+
+const currentMonth = new Date().getMonth();
+const currentYear = new Date().getFullYear();
+
+const rentCollected = tenants
+  .flatMap(t => t.paymentHistory)
+  .filter(p => {
+    const paymentDate = new Date(p.date);
+    return paymentDate.getMonth() === currentMonth && paymentDate.getFullYear() === currentYear;
+  })
+  .reduce((sum, p) => sum + p.amount, 0);
+
+const rentPending = tenants
+    .filter(t => t.rentStatus === 'Pending' || t.rentStatus === 'Overdue')
+    .reduce((sum, t) => sum + t.rentAmount, 0);
+
+
+const occupancyRate = totalUnits > 0 ? ((occupiedUnits / totalUnits) * 100).toFixed(1) : '0.0';
 
 const cardData = [
   {
     title: 'Total Units',
-    value: overviewStats.totalUnits,
+    value: totalUnits,
     icon: Home,
     description: 'Across all properties',
   },
   {
     title: 'Occupied Units',
-    value: overviewStats.occupiedUnits,
+    value: occupiedUnits,
     icon: Users,
     description: (
       <span className="flex items-center gap-1">
@@ -29,13 +48,13 @@ const cardData = [
   },
   {
     title: 'Rent Collected (Month)',
-    value: `ZMW ${overviewStats.rentCollected.toLocaleString()}`,
+    value: `ZMW ${rentCollected.toLocaleString()}`,
     icon: DollarSign,
-    description: `ZMW ${overviewStats.rentPending.toLocaleString()} outstanding`,
+    description: `ZMW ${rentPending.toLocaleString()} outstanding`,
   },
   {
     title: 'Tenants in Arrears',
-    value: overviewStats.overdueTenants,
+    value: overdueTenants,
     icon: AlertTriangle,
     description: 'Require follow-up',
     className: 'text-yellow-600 dark:text-yellow-400',
