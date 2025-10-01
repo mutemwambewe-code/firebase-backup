@@ -190,7 +190,7 @@ export function AutomatedReminder() {
                 <Wand2 className="h-4 w-4" />
                 <AlertTitle>AI Suggestion</AlertTitle>
                 <AlertDescription>
-                    Suggested time to send: strong>{result.sendTime}</strong> via <strong>{result.communicationMethod}</strong>.
+                    Suggested time to send: <strong>{result.sendTime}</strong> via <strong>{result.communicationMethod}</strong>.
                 </AlertDescription>
             </Alert>
           )}
