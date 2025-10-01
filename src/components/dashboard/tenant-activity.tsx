@@ -74,7 +74,7 @@ export default function TenantActivity() {
                         const y = cy  + radius * Math.sin(-midAngle * RADIAN);
             
                         return (
-                          <text x={x} y={y} fill="hsl(var(--primary-foreground))" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" className='font-bold text-sm'>
+                          <text x={x} y={y} fill="hsl(var(--primary-foreground))" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" className='font-bold text-base'>
                             {`${((value / totalTenants) * 100).toFixed(0)}%`}
                           </text>
                         );
