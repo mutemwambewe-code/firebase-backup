@@ -60,24 +60,6 @@ export function EditTenant({ tenant, children }: EditTenantProps) {
       rentStatus: tenant.rentStatus,
     },
   });
-  
-  // Keep form in sync with tenant prop
-  form.watch((values) => {
-    const changed = Object.keys(values).some(key => values[key as keyof FormData] !== tenant[key as keyof Tenant]);
-    if (!changed) {
-        form.reset({
-            name: tenant.name,
-            email: tenant.email,
-            phone: tenant.phone,
-            property: tenant.property,
-            unit: tenant.unit,
-            rentAmount: tenant.rentAmount,
-            leaseStartDate: tenant.leaseStartDate,
-            leaseEndDate: tenant.leaseEndDate,
-            rentStatus: tenant.rentStatus,
-        });
-    }
-  });
 
 
   function onSubmit(values: FormData) {
