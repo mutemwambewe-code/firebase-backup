@@ -4,21 +4,26 @@ import { useState } from 'react';
 import { properties as allProperties } from '@/lib/data';
 import type { Property } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Plus } from 'lucide-react';
+import { MoreHorizontal, Plus, Search } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
-import { Badge } from '../ui/badge';
+import { Input } from '../ui/input';
 import { Progress } from '../ui/progress';
 
 export function PropertyList() {
-  const [properties, setProperties] = useState<Property[]>(allProperties);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredProperties = allProperties.filter((property) =>
+    property.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleRemoveProperty = (id: string) => {
-    setProperties(properties.filter((p) => p.id !== id));
+    // This is a mock implementation. In a real app, you'd update the state.
+    alert(`Removing property ${id}. This is a mock action.`);
   };
 
-  if (!properties.length) {
+  if (!allProperties.length) {
     return (
         <div className="text-center py-16 border-2 border-dashed rounded-lg">
             <h2 className="text-xl font-semibold">No properties yet</h2>
@@ -34,66 +39,85 @@ export function PropertyList() {
   return (
     <Card>
         <CardHeader>
-            <div className='flex justify-between items-start'>
+            <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4'>
                 <div>
                     <CardTitle>Properties</CardTitle>
                     <CardDescription>A list of all your properties.</CardDescription>
                 </div>
-                <Button>
-                    <Plus className="mr-2" />
-                    Add Property
-                </Button>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
+                    <div className="relative sm:w-64">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            type="search"
+                            placeholder="Search properties..."
+                            className="pl-8 w-full"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <Button className='w-full sm:w-auto'>
+                        <Plus className="mr-2" />
+                        Add Property
+                    </Button>
+                </div>
             </div>
         </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className='w-[40%]'>Name</TableHead>
-              <TableHead>Total Units</TableHead>
-              <TableHead>Occupied Units</TableHead>
-              <TableHead>Occupancy Rate</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {properties.map((property) => {
-                const occupancyRate = (property.occupied / property.units) * 100;
-                return (
-                    <TableRow key={property.id}>
-                        <TableCell className="font-medium">{property.name}</TableCell>
-                        <TableCell>{property.units}</TableCell>
-                        <TableCell>{property.occupied}</TableCell>
-                        <TableCell>
-                            <div className='flex items-center gap-2'>
-                                <Progress value={occupancyRate} className="w-24 h-2" />
-                                <span className='text-muted-foreground text-xs'>{occupancyRate.toFixed(0)}%</span>
-                            </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <MoreHorizontal />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem>View Details</DropdownMenuItem>
-                              <DropdownMenuItem>Edit</DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => handleRemoveProperty(property.id)}
-                                className="text-destructive"
-                              >
-                                Remove
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                    </TableRow>
-                )
-            })}
-          </TableBody>
-        </Table>
+        {filteredProperties.length > 0 ? (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className='w-[40%]'>Name</TableHead>
+                <TableHead>Total Units</TableHead>
+                <TableHead>Occupied Units</TableHead>
+                <TableHead>Occupancy Rate</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredProperties.map((property) => {
+                  const occupancyRate = (property.occupied / property.units) * 100;
+                  return (
+                      <TableRow key={property.id}>
+                          <TableCell className="font-medium">{property.name}</TableCell>
+                          <TableCell>{property.units}</TableCell>
+                          <TableCell>{property.occupied}</TableCell>
+                          <TableCell>
+                              <div className='flex items-center gap-2'>
+                                  <Progress value={occupancyRate} className="w-24 h-2" />
+                                  <span className='text-muted-foreground text-xs'>{occupancyRate.toFixed(0)}%</span>
+                              </div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <MoreHorizontal />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem>View Details</DropdownMenuItem>
+                                <DropdownMenuItem>Edit</DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleRemoveProperty(property.id)}
+                                  className="text-destructive"
+                                >
+                                  Remove
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                      </TableRow>
+                  )
+              })}
+            </TableBody>
+          </Table>
+        ) : (
+            <div className="text-center py-16 border-2 border-dashed rounded-lg col-span-full">
+                <h2 className="text-xl font-semibold">No matching properties</h2>
+                <p className="text-muted-foreground mt-2">Try adjusting your search.</p>
+            </div>
+        )}
       </CardContent>
     </Card>
   );
