@@ -21,10 +21,13 @@ import { Badge } from '../ui/badge';
 import { cn } from '@/lib/utils';
 import { Form, FormItem, FormControl } from '../ui/form';
 import { useMessageLog } from './message-log-provider';
+import type { Tenant } from '@/lib/types';
+import { useProperties } from '../properties/property-provider';
 
 const formSchema = z.object({
-  tenantId: z.string().min(1, 'Please select a tenant.'),
+  tenantId: z.string().optional(),
   recipientType: z.enum(['individual', 'group']).default('individual'),
+  groupId: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -40,6 +43,7 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const { tenants } = useTenants();
+  const { properties } = useProperties();
   const { addMessageLog } = useMessageLog();
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<AutomatedCommunicationOutput | null>(null);
@@ -48,7 +52,8 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
     resolver: zodResolver(formSchema),
     defaultValues: {
       tenantId: searchParams.get('tenantId') || '',
-      recipientType: 'individual',
+      recipientType: searchParams.get('tenantId') ? 'individual' : 'group',
+      groupId: '',
     },
   });
 
@@ -56,12 +61,20 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
 
   const selectedTenantId = watch('tenantId');
   const recipientType = watch('recipientType');
+  const groupId = watch('groupId');
   const selectedTenant = tenants.find((t) => t.id === selectedTenantId);
+
+  const bulkGroups = [
+    { id: 'arrears', name: 'Tenants in Arrears' },
+    { id: 'pending', name: 'Tenants with Pending Payments' },
+    ...properties.map(p => ({id: `prop-${p.id}`, name: `All Tenants in ${p.name}`})),
+  ];
   
   useEffect(() => {
     const tenantIdFromParams = searchParams.get('tenantId');
     if (tenantIdFromParams) {
         setValue('tenantId', tenantIdFromParams);
+        setValue('recipientType', 'individual');
     }
   }, [searchParams, setValue]);
 
@@ -102,20 +115,49 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
   }
 
   const handleSend = () => {
-    if (!selectedTenant || !message) return;
+    if (!message) return;
 
-    addMessageLog({
-        id: `msg_${Date.now()}`,
-        tenantId: selectedTenant.id,
-        tenantName: selectedTenant.name,
-        message: message,
-        date: new Date().toISOString(),
-        method: result?.communicationMethod || 'SMS',
+    let recipients: Tenant[] = [];
+
+    if (recipientType === 'individual' && selectedTenant) {
+        recipients.push(selectedTenant);
+    } else if (recipientType === 'group' && groupId) {
+        if (groupId === 'arrears') {
+            recipients = tenants.filter(t => t.rentStatus === 'Overdue');
+        } else if (groupId === 'pending') {
+            recipients = tenants.filter(t => t.rentStatus === 'Pending');
+        } else if (groupId.startsWith('prop-')) {
+            const propId = groupId.replace('prop-', '');
+            const prop = properties.find(p => p.id === propId);
+            if (prop) {
+                recipients = tenants.filter(t => t.property === prop.name);
+            }
+        }
+    }
+    
+    if(recipients.length === 0) {
+        toast({
+            variant: "destructive",
+            title: "No recipients found",
+            description: "Please select a valid tenant or group with members."
+        });
+        return;
+    }
+
+    recipients.forEach(tenant => {
+        addMessageLog({
+            id: `msg_${Date.now()}_${tenant.id}`,
+            tenantId: tenant.id,
+            tenantName: tenant.name,
+            message: message, // We can add tag replacement here in the future
+            date: new Date().toISOString(),
+            method: result?.communicationMethod || 'SMS',
+        });
     });
 
     toast({
-        title: "Message Sent!",
-        description: `Your message has been sent to ${selectedTenant.name}.`
+        title: "Messages Sent!",
+        description: `Your message has been sent to ${recipients.length} tenant(s).`
     });
     setMessage('');
     setResult(null);
@@ -124,6 +166,8 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
   const handleTagClick = (tag: string) => {
     setMessage(prev => `${prev} {{${tag}}}`);
   };
+
+  const isSendDisabled = !message || (recipientType === 'individual' && !selectedTenantId) || (recipientType === 'group' && !groupId);
 
   return (
     <Card className="mt-4 border-none shadow-none">
@@ -138,9 +182,14 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
               control={control}
               render={({ field }) => (
                 <RadioGroup
-                  onValueChange={field.onChange}
+                  onValueChange={(value) => {
+                      field.onChange(value);
+                      setValue('tenantId', '');
+                      setValue('groupId', '');
+                  }}
                   defaultValue={field.value}
                   className="flex items-center space-x-4"
+                  value={field.value}
                 >
                   <FormItem className="flex items-center space-x-2 space-y-0">
                     <FormControl>
@@ -150,45 +199,75 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
                   </FormItem>
                   <FormItem className="flex items-center space-x-2 space-y-0">
                     <FormControl>
-                      <RadioGroupItem value="group" id="group" disabled />
+                      <RadioGroupItem value="group" id="group" />
                     </FormControl>
-                    <Label htmlFor="group" className="opacity-50">Bulk Group (soon)</Label>
+                    <Label htmlFor="group">Bulk Group</Label>
                   </FormItem>
                 </RadioGroup>
               )}
             />
             
-            <div className={cn("space-y-2", recipientType === 'group' && 'opacity-50')}>
-              <Label htmlFor="tenantId">Select Tenant</Label>
-              <Controller
-                name="tenantId"
-                control={control}
-                render={({ field }) => (
-                  <Select 
-                    onValueChange={(value) => {
-                      field.onChange(value);
-                      setResult(null);
-                      setMessage('');
-                    }} 
-                    defaultValue={field.value}
-                    disabled={recipientType === 'group'}
-                    value={field.value}
-                  >
-                    <SelectTrigger id="tenantId">
-                      <SelectValue placeholder="Select a tenant" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {tenants.map((tenant) => (
-                        <SelectItem key={tenant.id} value={tenant.id}>
-                          {tenant.name} ({tenant.property} - {tenant.unit})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {errors.tenantId && recipientType === 'individual' && <p className="text-sm text-destructive">{errors.tenantId.message}</p>}
-            </div>
+            {recipientType === 'individual' && (
+              <div className="space-y-2">
+                <Label htmlFor="tenantId">Select Tenant</Label>
+                <Controller
+                  name="tenantId"
+                  control={control}
+                  render={({ field }) => (
+                    <Select 
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        setResult(null);
+                        setMessage('');
+                      }} 
+                      defaultValue={field.value}
+                      value={field.value}
+                    >
+                      <SelectTrigger id="tenantId">
+                        <SelectValue placeholder="Select a tenant" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {tenants.map((tenant) => (
+                          <SelectItem key={tenant.id} value={tenant.id}>
+                            {tenant.name} ({tenant.property} - {tenant.unit})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.tenantId && <p className="text-sm text-destructive">{errors.tenantId.message}</p>}
+              </div>
+            )}
+            
+            {recipientType === 'group' && (
+                <div className="space-y-2">
+                    <Label htmlFor="groupId">Select Group</Label>
+                    <Controller
+                        name="groupId"
+                        control={control}
+                        render={({ field }) => (
+                        <Select 
+                            onValueChange={field.onChange} 
+                            defaultValue={field.value}
+                            value={field.value}
+                        >
+                            <SelectTrigger id="groupId">
+                                <SelectValue placeholder="Select a bulk group" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {bulkGroups.map((group) => (
+                                    <SelectItem key={group.id} value={group.id}>
+                                        {group.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        )}
+                    />
+                </div>
+            )}
+
 
             <div className="space-y-2">
               <Label htmlFor="message">Message</Label>
@@ -228,11 +307,11 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
 
           </CardContent>
           <CardFooter className="flex justify-between items-center border-t pt-6 mt-6">
-            <Button type="submit" variant="outline" disabled={isLoading || !selectedTenantId}>
+            <Button type="submit" variant="outline" disabled={isLoading || recipientType === 'group' || !selectedTenantId}>
               {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
               Generate with AI
             </Button>
-            <Button onClick={handleSend} disabled={!message || !selectedTenantId}>
+            <Button onClick={handleSend} disabled={isSendDisabled}>
               <Send className="mr-2 h-4 w-4" />
               Send Message
             </Button>
