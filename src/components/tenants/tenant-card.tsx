@@ -10,6 +10,7 @@ import { Phone, Mail, MoreVertical } from 'lucide-react';
 import Link from 'next/link';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { EditTenant } from './edit-tenant';
+import { LogPayment } from './log-payment';
 
 interface TenantCardProps {
   tenant: Tenant;
@@ -80,9 +81,11 @@ export function TenantCard({ tenant }: TenantCardProps) {
         </div>
       </CardContent>
       <CardFooter className="flex gap-2">
-        <Button variant="outline" className="w-full">
-          Log Payment
-        </Button>
+        <LogPayment tenant={tenant}>
+            <Button variant="outline" className="w-full">
+                Log Payment
+            </Button>
+        </LogPayment>
         <Link href={`/communication?tenantId=${tenant.id}`} className='w-full'>
           <Button className="w-full">Send Reminder</Button>
         </Link>

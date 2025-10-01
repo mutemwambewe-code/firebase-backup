@@ -1,0 +1,141 @@
+'use client';
+
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useTenants } from './tenant-provider';
+import { useToast } from '@/hooks/use-toast';
+import type { Tenant, Payment } from '@/lib/types';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+
+const formSchema = z.object({
+  amount: z.coerce.number().min(1, 'Payment amount must be positive.'),
+  date: z.string().min(1, 'Payment date is required.'),
+  method: z.enum(['Mobile Money', 'Bank Transfer', 'Cash']),
+});
+
+type FormData = z.infer<typeof formSchema>;
+
+interface LogPaymentProps {
+  tenant: Tenant;
+  children: React.ReactNode;
+}
+
+export function LogPayment({ tenant, children }: LogPaymentProps) {
+  const [open, setOpen] = useState(false);
+  const { logPayment } = useTenants();
+  const { toast } = useToast();
+
+  const form = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      amount: tenant.rentAmount,
+      date: format(new Date(), 'yyyy-MM-dd'),
+      method: 'Mobile Money',
+    },
+  });
+
+  function onSubmit(values: FormData) {
+    const newPayment: Payment = {
+      ...values,
+      id: `p${Date.now()}`,
+    };
+    logPayment(tenant.id, newPayment);
+    toast({
+      title: 'Payment Logged!',
+      description: `Payment of ZMW ${newPayment.amount.toLocaleString()} for ${tenant.name} has been recorded.`,
+    });
+    setOpen(false);
+    form.reset({
+      amount: tenant.rentAmount,
+      date: format(new Date(), 'yyyy-MM-dd'),
+      method: 'Mobile Money',
+    });
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Log Payment for {tenant.name}</DialogTitle>
+          <DialogDescription>
+            Record a new rent payment for this tenant. Rent amount: ZMW {tenant.rentAmount.toLocaleString()}
+          </DialogDescription>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+            <FormField
+              control={form.control}
+              name="amount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Payment Amount (ZMW)</FormLabel>
+                  <FormControl>
+                    <Input type="number" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Payment Date</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="method"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Payment Method</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a payment method" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Mobile Money">Mobile Money</SelectItem>
+                      <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                      <SelectItem value="Cash">Cash</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <DialogFooter>
+              <Button type="submit">Save Payment</Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}

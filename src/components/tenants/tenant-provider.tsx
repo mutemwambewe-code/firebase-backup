@@ -2,12 +2,13 @@
 
 import { createContext, useContext, useState, type ReactNode, useEffect } from 'react';
 import { tenants as initialTenantsData } from '@/lib/data';
-import type { Tenant } from '@/lib/types';
+import type { Tenant, Payment } from '@/lib/types';
 
 type TenantContextType = {
   tenants: Tenant[];
   addTenant: (tenant: Tenant) => void;
   updateTenant: (tenant: Tenant) => void;
+  logPayment: (tenantId: string, payment: Payment) => void;
   isInitialized: boolean;
 };
 
@@ -54,11 +55,32 @@ export function TenantProvider({ children }: { children: ReactNode }) {
         )
     );
   };
+  
+  const logPayment = (tenantId: string, payment: Payment) => {
+    setTenants((prevTenants) =>
+      prevTenants.map((tenant) => {
+        if (tenant.id === tenantId) {
+          const updatedTenant = {
+            ...tenant,
+            paymentHistory: [payment, ...tenant.paymentHistory],
+          };
+          // If payment amount is equal or greater than rent amount, update status to Paid
+          if (payment.amount >= tenant.rentAmount) {
+            updatedTenant.rentStatus = 'Paid';
+          }
+          return updatedTenant;
+        }
+        return tenant;
+      })
+    );
+  };
+
 
   const value = {
     tenants,
     addTenant,
     updateTenant,
+    logPayment,
     isInitialized
   };
 
