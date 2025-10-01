@@ -59,7 +59,7 @@ export default function TenantDetailPage() {
     }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 max-w-5xl mx-auto">
        <div className='flex justify-start'>
             <Link href="/tenants">
                 <Button variant="outline">
