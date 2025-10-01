@@ -17,7 +17,10 @@ import {
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { CalendarIcon, Plus } from 'lucide-react';
+import { format } from 'date-fns';
 import { useTenants } from './tenant-provider';
 import { properties } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
@@ -32,8 +35,12 @@ const formSchema = z.object({
   property: z.string().min(1, 'Please select a property.'),
   unit: z.string().min(1, 'Unit is required.'),
   rentAmount: z.coerce.number().min(1, 'Rent amount must be positive.'),
-  leaseStartDate: z.string().min(1, 'Lease start date is required.'),
-  leaseEndDate: z.string().min(1, 'Lease end date is required.'),
+  leaseStartDate: z.date({
+    required_error: 'Lease start date is required.',
+  }),
+  leaseEndDate: z.date({
+    required_error: 'Lease end date is required.',
+  }),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -52,8 +59,6 @@ export function AddTenant({ asChild, className }: { asChild?: boolean; className
       property: '',
       unit: '',
       rentAmount: 0,
-      leaseStartDate: '',
-      leaseEndDate: '',
     },
   });
 
@@ -61,6 +66,8 @@ export function AddTenant({ asChild, className }: { asChild?: boolean; className
     const randomAvatar = PlaceHolderImages[Math.floor(Math.random() * 5)];
     const newTenant: Tenant = {
       ...values,
+      leaseStartDate: format(values.leaseStartDate, 'yyyy-MM-dd'),
+      leaseEndDate: format(values.leaseEndDate, 'yyyy-MM-dd'),
       id: `t${Date.now()}`,
       avatarUrl: randomAvatar.imageUrl,
       rentStatus: 'Pending',
@@ -193,12 +200,40 @@ export function AddTenant({ asChild, className }: { asChild?: boolean; className
                     control={form.control}
                     name="leaseStartDate"
                     render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Lease Start</FormLabel>
-                        <FormControl>
-                            <Input type="date" {...field} />
-                        </FormControl>
-                        <FormMessage />
+                        <FormItem className="flex flex-col">
+                            <FormLabel>Lease Start</FormLabel>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                <FormControl>
+                                    <Button
+                                    variant={"outline"}
+                                    className={cn(
+                                        "pl-3 text-left font-normal",
+                                        !field.value && "text-muted-foreground"
+                                    )}
+                                    >
+                                    {field.value ? (
+                                        format(field.value, "PPP")
+                                    ) : (
+                                        <span>Pick a date</span>
+                                    )}
+                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                    </Button>
+                                </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                    mode="single"
+                                    selected={field.value}
+                                    onSelect={field.onChange}
+                                    disabled={(date) =>
+                                        date > new Date() || date < new Date("1900-01-01")
+                                    }
+                                    initialFocus
+                                />
+                                </PopoverContent>
+                            </Popover>
+                            <FormMessage />
                         </FormItem>
                     )}
                 />
@@ -206,11 +241,36 @@ export function AddTenant({ asChild, className }: { asChild?: boolean; className
                     control={form.control}
                     name="leaseEndDate"
                     render={({ field }) => (
-                        <FormItem>
+                        <FormItem className="flex flex-col">
                         <FormLabel>Lease End</FormLabel>
-                        <FormControl>
-                            <Input type="date" {...field} />
-                        </FormControl>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                <FormControl>
+                                    <Button
+                                    variant={"outline"}
+                                    className={cn(
+                                        "pl-3 text-left font-normal",
+                                        !field.value && "text-muted-foreground"
+                                    )}
+                                    >
+                                    {field.value ? (
+                                        format(field.value, "PPP")
+                                    ) : (
+                                        <span>Pick a date</span>
+                                    )}
+                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                    </Button>
+                                </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                    mode="single"
+                                    selected={field.value}
+                                    onSelect={field.onChange}
+                                    initialFocus
+                                />
+                                </PopoverContent>
+                            </Popover>
                         <FormMessage />
                         </FormItem>
                     )}
