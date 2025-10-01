@@ -12,9 +12,16 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { generateTenantListPDF, generateTenantListExcel } from '@/lib/report-generator';
+import {
+  generateTenantListPDF,
+  generateTenantListExcel,
+  generatePaymentHistoryPDF,
+  generatePaymentHistoryExcel,
+} from '@/lib/report-generator';
 import type { Tenant, Property, Payment } from '@/lib/types';
 import { FinancialReport } from '@/components/reports/financial-report';
 import { OccupancyReport } from '@/components/reports/occupancy-report';
@@ -32,7 +39,14 @@ export default function ReportsPage() {
     const occupiedUnits = tenants.length;
     const occupancyRate = totalUnits > 0 ? (occupiedUnits / totalUnits) * 100 : 0;
     const totalMonthlyRent = tenants.reduce((sum, t) => sum + t.rentAmount, 0);
-    const allPayments = tenants.flatMap(t => t.paymentHistory);
+    const allPayments = tenants.flatMap(t => 
+      t.paymentHistory.map(p => ({
+        ...p,
+        tenantName: t.name,
+        property: t.property,
+        unit: t.unit,
+      }))
+    ).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     return {
       tenants,
@@ -52,14 +66,17 @@ export default function ReportsPage() {
   if (!reportData) {
     return <div>Loading reports...</div>;
   }
-  
-  const handleDownloadTenants = (format: 'pdf' | 'excel') => {
-    if (format === 'pdf') {
-      generateTenantListPDF(reportData.tenants);
-    } else {
-      generateTenantListExcel(reportData.tenants);
+
+  const handleDownload = (type: 'tenantList' | 'paymentHistory', format: 'pdf' | 'excel') => {
+    if (type === 'tenantList') {
+      if (format === 'pdf') generateTenantListPDF(reportData.tenants);
+      else generateTenantListExcel(reportData.tenants);
+    } else if (type === 'paymentHistory') {
+      if (format === 'pdf') generatePaymentHistoryPDF(reportData.allPayments);
+      else generatePaymentHistoryExcel(reportData.allPayments);
     }
   };
+
 
   return (
     <div className="flex flex-col gap-6">
@@ -78,11 +95,20 @@ export default function ReportsPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => handleDownloadTenants('pdf')}>
+            <DropdownMenuLabel>Tenant Reports</DropdownMenuLabel>
+            <DropdownMenuItem onClick={() => handleDownload('tenantList', 'pdf')}>
               Download Tenant List (PDF)
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleDownloadTenants('excel')}>
+            <DropdownMenuItem onClick={() => handleDownload('tenantList', 'excel')}>
               Download Tenant List (Excel)
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel>Financial Reports</DropdownMenuLabel>
+            <DropdownMenuItem onClick={() => handleDownload('paymentHistory', 'pdf')}>
+              Download Payment History (PDF)
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleDownload('paymentHistory', 'excel')}>
+              Download Payment History (Excel)
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

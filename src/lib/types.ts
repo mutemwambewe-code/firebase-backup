@@ -21,6 +21,12 @@ export type Payment = {
   method: 'Mobile Money' | 'Bank Transfer' | 'Cash';
 };
 
+export type EnrichedPayment = Payment & {
+  tenantName: string;
+  property: string;
+  unit: string;
+};
+
 export type Property = {
   id: string;
   name: string;
