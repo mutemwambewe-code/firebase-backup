@@ -5,7 +5,7 @@ import { AppLayout } from '@/components/layout/app-layout';
 import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
-  title: 'PropEase Zambia',
+  title: 'PropBot Zambia',
   description: 'Modern Property Management for Zambian Landlords',
 };
 
