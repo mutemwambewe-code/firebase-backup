@@ -31,6 +31,7 @@ const formSchema = z.object({
   rentAmount: z.coerce.number().min(1, 'Rent amount must be positive.'),
   leaseStartDate: z.string().min(1, 'Lease start date is required.'),
   leaseEndDate: z.string().min(1, 'Lease end date is required.'),
+  rentStatus: z.enum(['Paid', 'Pending', 'Overdue']),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -55,6 +56,7 @@ export function EditTenant({ tenant }: EditTenantProps) {
       rentAmount: tenant.rentAmount,
       leaseStartDate: tenant.leaseStartDate,
       leaseEndDate: tenant.leaseEndDate,
+      rentStatus: tenant.rentStatus,
     },
   });
 
@@ -203,6 +205,28 @@ export function EditTenant({ tenant }: EditTenantProps) {
                     )}
                 />
             </div>
+             <FormField
+              control={form.control}
+              name="rentStatus"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Rent Status</FormLabel>
+                  <Select onValuechange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select rent status" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Paid">Paid</SelectItem>
+                      <SelectItem value="Pending">Pending</SelectItem>
+                      <SelectItem value="Overdue">Overdue</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <DialogFooter>
               <Button type="submit">Save Changes</Button>
