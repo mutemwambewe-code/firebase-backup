@@ -39,6 +39,20 @@ interface AutomatedReminderProps {
     setMessage: (message: string) => void;
 }
 
+const replacePlaceholders = (message: string, tenant: Tenant): string => {
+    const arrears = tenant.rentStatus === 'Overdue' ? tenant.rentAmount : 0;
+    const dueDate = new Date(); // Using today as a proxy for due date
+    dueDate.setDate(5); // Assuming due date is the 5th
+  
+    return message
+      .replace(/{{name}}/g, tenant.name)
+      .replace(/{{rent_due}}/g, `ZMW ${tenant.rentAmount.toLocaleString()}`)
+      .replace(/{{arrears}}/g, `ZMW ${arrears.toLocaleString()}`)
+      .replace(/{{due_date}}/g, dueDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' }))
+      .replace(/{{property}}/g, tenant.property)
+      .replace(/{{lease_end_date}}/g, new Date(tenant.leaseEndDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }));
+  };
+
 export function AutomatedReminder({ message, setMessage }: AutomatedReminderProps) {
   const searchParams = useSearchParams();
   const { toast } = useToast();
@@ -148,11 +162,12 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
     }
 
     recipients.forEach(tenant => {
+        const personalizedMessage = replacePlaceholders(message, tenant);
         addMessageLog({
             id: `msg_${Date.now()}_${tenant.id}`,
             tenantId: tenant.id,
             tenantName: tenant.name,
-            message: message, // We can add tag replacement here in the future
+            message: personalizedMessage,
             date: new Date().toISOString(),
             method: result?.communicationMethod || 'SMS',
         });
