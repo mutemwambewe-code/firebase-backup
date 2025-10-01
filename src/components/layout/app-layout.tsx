@@ -13,7 +13,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen w-full">
-      <aside className="hidden border-r bg-sidebar text-sidebar-foreground sm:flex sm:flex-col">
+      <aside className="hidden border-r bg-sidebar text-sidebar-foreground sm:flex sm:flex-col sticky top-0 h-screen">
         <nav className="flex flex-col items-center gap-4 px-2 py-4">
           <Link
             href="/dashboard"
