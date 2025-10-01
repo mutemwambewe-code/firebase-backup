@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { TenantCard } from './tenant-card';
 import { tenants as allTenants } from '@/lib/data';
-import type { Tenant } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
@@ -11,8 +11,35 @@ import { Search } from 'lucide-react';
 type FilterStatus = 'All' | 'Paid' | 'Pending' | 'Overdue';
 
 export function TenantList() {
-  const [filter, setFilter] = useState<FilterStatus>('All');
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  
+  const getFilterFromURL = (): FilterStatus => {
+    const filter = searchParams.get('filter');
+    if (filter === 'Paid' || filter === 'Pending' || filter === 'Overdue') {
+      return filter;
+    }
+    return 'All';
+  };
+
+  const [filter, setFilter] = useState<FilterStatus>(getFilterFromURL());
   const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    setFilter(getFilterFromURL());
+  }, [searchParams]);
+
+  const handleFilterChange = (status: FilterStatus) => {
+    setFilter(status);
+    const params = new URLSearchParams(searchParams.toString());
+    if (status === 'All') {
+      params.delete('filter');
+    } else {
+      params.set('filter', status);
+    }
+    router.push(`${pathname}?${params.toString()}`);
+  };
 
   const filteredTenants = allTenants
     .filter((tenant) => {
@@ -52,7 +79,7 @@ export function TenantList() {
               <Button
                 key={status}
                 variant={filter === status ? 'default' : 'outline'}
-                onClick={() => setFilter(status)}
+                onClick={() => handleFilterChange(status)}
                 className="capitalize"
               >
                 {status}
