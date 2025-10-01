@@ -10,8 +10,8 @@ const tenantImages = {
 }
 
 export const properties: Property[] = [
-  { id: 'prop1', name: 'Kalingalinga Complex', units: 10, occupied: 8 },
-  { id: 'prop2', name: 'Woodlands Apartments', units: 5, occupied: 5 },
+  { id: 'prop1', name: 'Kalingalinga Complex', location: 'Lusaka', units: 10, occupied: 8 },
+  { id: 'prop2', name: 'Woodlands Apartments', location: 'Lusaka', units: 5, occupied: 5 },
 ];
 
 export const tenants: Tenant[] = [

@@ -11,10 +11,13 @@ import { Input } from '../ui/input';
 import { Progress } from '../ui/progress';
 import { properties as allProperties } from '@/lib/data';
 import { useTenants } from '../tenants/tenant-provider';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export function PropertyList() {
   const [searchTerm, setSearchTerm] = useState('');
   const { tenants } = useTenants();
+  const router = useRouter();
 
   const propertiesWithOccupancy = allProperties.map(p => {
     const occupiedCount = tenants.filter(t => t.property === p.name).length;
@@ -28,6 +31,10 @@ export function PropertyList() {
   const handleRemoveProperty = (id: string) => {
     // This is a mock implementation. In a real app, you'd update the state.
     alert(`Removing property ${id}. This is a mock action.`);
+  };
+  
+  const handleRowClick = (propertyId: string) => {
+    router.push(`/properties/${propertyId}`);
   };
 
   if (!allProperties.length) {
@@ -74,7 +81,8 @@ export function PropertyList() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className='w-[40%]'>Name</TableHead>
+                <TableHead className='w-[30%]'>Name</TableHead>
+                <TableHead>Location</TableHead>
                 <TableHead>Total Units</TableHead>
                 <TableHead>Occupied Units</TableHead>
                 <TableHead>Occupancy Rate</TableHead>
@@ -85,8 +93,9 @@ export function PropertyList() {
               {filteredProperties.map((property) => {
                   const occupancyRate = property.units > 0 ? (property.occupied / property.units) * 100 : 0;
                   return (
-                      <TableRow key={property.id}>
+                      <TableRow key={property.id} onClick={() => handleRowClick(property.id)} className="cursor-pointer">
                           <TableCell className="font-medium">{property.name}</TableCell>
+                          <TableCell>{property.location}</TableCell>
                           <TableCell>{property.units}</TableCell>
                           <TableCell>{property.occupied}</TableCell>
                           <TableCell>
@@ -98,15 +107,17 @@ export function PropertyList() {
                           <TableCell className="text-right">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
+                                <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
                                   <MoreHorizontal />
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem>View Details</DropdownMenuItem>
-                                <DropdownMenuItem>Edit</DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                    <Link href={`/properties/${property.id}`}>View Details</Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); alert('Edit functionality coming soon!')}}>Edit</DropdownMenuItem>
                                 <DropdownMenuItem
-                                  onClick={() => handleRemoveProperty(property.id)}
+                                  onClick={(e) => {e.stopPropagation(); handleRemoveProperty(property.id)}}
                                   className="text-destructive"
                                 >
                                   Remove

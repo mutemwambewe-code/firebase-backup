@@ -24,6 +24,7 @@ export type Payment = {
 export type Property = {
   id: string;
   name: string;
+  location: string;
   units: number;
   occupied: number;
 };
