@@ -3,6 +3,7 @@ import './globals.css';
 import { AppProviders } from '@/components/providers/app-providers';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Toaster } from "@/components/ui/toaster"
+import { TenantProvider } from '@/components/tenants/tenant-provider';
 
 export const metadata: Metadata = {
   title: 'PropBot Zambia',
@@ -23,7 +24,9 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <AppProviders>
-          <AppLayout>{children}</AppLayout>
+          <TenantProvider>
+            <AppLayout>{children}</AppLayout>
+          </TenantProvider>
           <Toaster />
         </AppProviders>
       </body>
