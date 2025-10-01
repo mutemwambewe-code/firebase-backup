@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -58,9 +58,6 @@ export function EditTenant({ tenant, children }: EditTenantProps) {
   });
 
   function onSubmit(values: FormData) {
-    // The rentStatus from the form is now a manual override.
-    // The automatic status logic will be reapplied on next load, 
-    // but this allows for temporary manual changes.
     const updatedTenant: Tenant = {
       ...tenant,
       ...values,
@@ -101,7 +98,7 @@ export function EditTenant({ tenant, children }: EditTenantProps) {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Edit Tenant</DialogTitle>
           <DialogDescription>Update the details for {tenant.name}.</DialogDescription>
