@@ -18,6 +18,18 @@ const statusData = [
 
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))'];
 
+const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <Card className="p-2 text-sm shadow-lg">
+          <p className="font-bold">{`${payload[0].name}: ${payload[0].value}`}</p>
+        </Card>
+      );
+    }
+  
+    return null;
+  };
+
 export default function TenantActivity() {
   const totalTenants = statusData.reduce((acc, entry) => acc + entry.value, 0);
 
@@ -58,13 +70,7 @@ export default function TenantActivity() {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke={COLORS[index % COLORS.length]} />
                     ))}
                 </Pie>
-                <Tooltip
-                    contentStyle={{
-                        background: "hsl(var(--card))",
-                        borderColor: "hsl(var(--border))",
-                        borderRadius: "var(--radius)",
-                    }}
-                />
+                <Tooltip content={<CustomTooltip />} />
                 <Legend wrapperStyle={{fontSize: "0.8rem"}}/>
             </PieChart>
         </ResponsiveContainer>

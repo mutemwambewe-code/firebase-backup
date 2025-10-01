@@ -19,6 +19,24 @@ const rentData = [
     { month: 'Jun', due: 158000, collected: 155000 },
 ];
 
+const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <Card className="p-2 text-sm shadow-lg">
+          <p className="font-bold">{label}</p>
+          <p style={{ color: 'hsl(var(--chart-2))' }}>
+            Collected: ZMW {payload[1].value.toLocaleString()}
+          </p>
+          <p style={{ color: 'hsl(var(--chart-1))' }}>
+            Due: ZMW {payload[0].value.toLocaleString()}
+          </p>
+        </Card>
+      );
+    }
+  
+    return null;
+  };
+
 export function RentStatusChart() {
   return (
     <Card className="shadow-none h-full">
@@ -43,13 +61,7 @@ export function RentStatusChart() {
               axisLine={false}
               tickFormatter={(value) => `ZMW ${value / 1000}k`}
             />
-             <Tooltip
-                contentStyle={{
-                    background: "hsl(var(--card))",
-                    borderColor: "hsl(var(--border))",
-                    borderRadius: "var(--radius)",
-                }}
-             />
+             <Tooltip cursor={{ fill: 'hsla(var(--card-foreground) / 0.1)' }} content={<CustomTooltip />} />
             <Legend wrapperStyle={{fontSize: "0.8rem"}}/>
             <Bar dataKey="due" fill="hsl(var(--chart-1))" name="Rent Due" radius={[4, 4, 0, 0]} />
             <Bar dataKey="collected" fill="hsl(var(--chart-2))" name="Rent Collected" radius={[4, 4, 0, 0]} />
