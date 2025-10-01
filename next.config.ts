@@ -1,3 +1,4 @@
+
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -29,6 +30,13 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
+  },
+  webpack: (config, { isServer }) => {
+    // Exclude jspdf from server-side bundle
+    if (isServer) {
+      config.externals.push('jspdf');
+    }
+    return config;
   },
 };
 
