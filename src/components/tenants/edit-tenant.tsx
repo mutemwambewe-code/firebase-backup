@@ -98,7 +98,7 @@ export function EditTenant({ tenant, children }: EditTenantProps) {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Edit Tenant</DialogTitle>
           <DialogDescription>Update the details for {tenant.name}.</DialogDescription>
