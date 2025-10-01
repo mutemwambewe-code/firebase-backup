@@ -36,7 +36,7 @@ const formSchema = z.object({
   leaseStartDate: z.string().min(1, 'Lease start date is required.'),
   leaseEndDate: z.string().min(1, 'Lease end date is required.'),
   rentStatus: z.enum(['Paid', 'Pending', 'Overdue']),
-  avatarUrl: z.string(),
+  avatarUrl: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -63,6 +63,7 @@ export function EditTenant({ tenant, children }: EditTenantProps) {
     const updatedTenant: Tenant = {
       ...tenant,
       ...values,
+      avatarUrl: values.avatarUrl || tenant.avatarUrl,
     };
     updateTenant(updatedTenant);
     toast({
