@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -27,6 +27,7 @@ export function AutomatedReminder() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<AutomatedCommunicationOutput | null>(null);
+  const [message, setMessage] = useState('');
 
   const { control, handleSubmit, watch, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -38,10 +39,18 @@ export function AutomatedReminder() {
   const selectedTenantId = watch('tenantId');
   const selectedTenant = tenants.find((t) => t.id === selectedTenantId);
 
+  useEffect(() => {
+    if (result) {
+      setMessage(result.message);
+    }
+  }, [result]);
+
+
   async function onSubmit(data: FormData) {
     if (!selectedTenant) return;
     setIsLoading(true);
     setResult(null);
+    setMessage('');
 
     try {
       const input = {
@@ -115,7 +124,7 @@ export function AutomatedReminder() {
                 </Alert>
                 <div className="space-y-2">
                     <Label htmlFor="message">Generated Message</Label>
-                    <Textarea id="message" value={result.message} rows={5} />
+                    <Textarea id="message" value={message} onChange={(e) => setMessage(e.target.value)} rows={5} />
                 </div>
             </div>
           )}
