@@ -211,7 +211,7 @@ export function EditTenant({ tenant }: EditTenantProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Rent Status</FormLabel>
-                  <Select onValuechange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select rent status" />
