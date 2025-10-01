@@ -6,8 +6,10 @@ import { Button } from '@/components/ui/button';
 import type { Tenant } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
-import { Phone, Mail } from 'lucide-react';
+import { Phone, Mail, MoreVertical } from 'lucide-react';
 import Link from 'next/link';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
+import { EditTenant } from './edit-tenant';
 
 interface TenantCardProps {
   tenant: Tenant;
@@ -24,7 +26,7 @@ export function TenantCard({ tenant }: TenantCardProps) {
 
   return (
     <Card className="flex flex-col">
-      <CardHeader className="flex flex-row items-center gap-4">
+      <CardHeader className="flex flex-row items-start gap-4">
         <Avatar className="h-14 w-14">
           {avatar && (
             <AvatarImage asChild src={avatar.imageUrl}>
@@ -38,12 +40,25 @@ export function TenantCard({ tenant }: TenantCardProps) {
               .join('')}
           </AvatarFallback>
         </Avatar>
-        <div>
+        <div className='flex-1'>
           <h3 className="text-lg font-bold">{tenant.name}</h3>
           <p className="text-sm text-muted-foreground">
             {tenant.property} - Unit {tenant.unit}
           </p>
         </div>
+         <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className='h-8 w-8'>
+                    <MoreVertical className="h-4 w-4" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <EditTenant tenant={tenant} />
+                <DropdownMenuItem className="text-destructive">
+                    Delete Tenant
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
       </CardHeader>
       <CardContent className="flex-grow space-y-3">
         <div className="flex items-center gap-3 text-sm">

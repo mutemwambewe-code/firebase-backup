@@ -7,7 +7,8 @@ import type { Tenant } from '@/lib/types';
 type TenantContextType = {
   tenants: Tenant[];
   addTenant: (tenant: Tenant) => void;
-  // In a real app, you'd have updateTenant, deleteTenant, etc.
+  updateTenant: (tenant: Tenant) => void;
+  // In a real app, you'd have deleteTenant, etc.
 };
 
 const TenantContext = createContext<TenantContextType | undefined>(undefined);
@@ -18,10 +19,19 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   const addTenant = (tenant: Tenant) => {
     setTenants((prevTenants) => [tenant, ...prevTenants]);
   };
+  
+  const updateTenant = (updatedTenant: Tenant) => {
+    setTenants((prevTenants) => 
+        prevTenants.map((tenant) => 
+            tenant.id === updatedTenant.id ? updatedTenant : tenant
+        )
+    );
+  };
 
   const value = {
     tenants,
     addTenant,
+    updateTenant
   };
 
   return <TenantContext.Provider value={value}>{children}</TenantContext.Provider>;
