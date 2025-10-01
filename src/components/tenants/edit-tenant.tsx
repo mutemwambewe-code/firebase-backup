@@ -12,6 +12,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -20,7 +21,6 @@ import { useTenants } from './tenant-provider';
 import { properties } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import type { Tenant } from '@/lib/types';
-import { DropdownMenuItem } from '../ui/dropdown-menu';
 
 const formSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -38,9 +38,10 @@ type FormData = z.infer<typeof formSchema>;
 
 interface EditTenantProps {
   tenant: Tenant;
+  children?: React.ReactNode;
 }
 
-export function EditTenant({ tenant }: EditTenantProps) {
+export function EditTenant({ tenant, children }: EditTenantProps) {
   const [open, setOpen] = useState(false);
   const { updateTenant } = useTenants();
   const { toast } = useToast();
@@ -59,6 +60,25 @@ export function EditTenant({ tenant }: EditTenantProps) {
       rentStatus: tenant.rentStatus,
     },
   });
+  
+  // Keep form in sync with tenant prop
+  form.watch((values) => {
+    const changed = Object.keys(values).some(key => values[key as keyof FormData] !== tenant[key as keyof Tenant]);
+    if (!changed) {
+        form.reset({
+            name: tenant.name,
+            email: tenant.email,
+            phone: tenant.phone,
+            property: tenant.property,
+            unit: tenant.unit,
+            rentAmount: tenant.rentAmount,
+            leaseStartDate: tenant.leaseStartDate,
+            leaseEndDate: tenant.leaseEndDate,
+            rentStatus: tenant.rentStatus,
+        });
+    }
+  });
+
 
   function onSubmit(values: FormData) {
     const updatedTenant: Tenant = {
@@ -72,12 +92,27 @@ export function EditTenant({ tenant }: EditTenantProps) {
     });
     setOpen(false);
   }
+  
+  const handleOpenChange = (isOpen: boolean) => {
+      if(isOpen) {
+          form.reset({
+            name: tenant.name,
+            email: tenant.email,
+            phone: tenant.phone,
+            property: tenant.property,
+            unit: tenant.unit,
+            rentAmount: tenant.rentAmount,
+            leaseStartDate: tenant.leaseStartDate,
+            leaseEndDate: tenant.leaseEndDate,
+            rentStatus: tenant.rentStatus,
+        });
+      }
+      setOpen(isOpen);
+  }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-        <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setOpen(true); }}>
-            Edit
-        </DropdownMenuItem>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Edit Tenant</DialogTitle>

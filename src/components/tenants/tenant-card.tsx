@@ -26,69 +26,74 @@ export function TenantCard({ tenant }: TenantCardProps) {
   const avatar = PlaceHolderImages.find((p) => p.id === tenant.avatarId);
 
   return (
-    <Card className="flex flex-col">
-      <CardHeader className="flex flex-row items-start gap-4">
-        <Avatar className="h-14 w-14">
-          {avatar && (
-            <AvatarImage asChild src={avatar.imageUrl}>
-                <Image src={avatar.imageUrl} alt={tenant.name} width={56} height={56} data-ai-hint={avatar.imageHint} />
-            </AvatarImage>
-          )}
-          <AvatarFallback className="text-xl">
-            {tenant.name
-              .split(' ')
-              .map((n) => n[0])
-              .join('')}
-          </AvatarFallback>
-        </Avatar>
-        <div className='flex-1'>
-          <h3 className="text-lg font-bold">{tenant.name}</h3>
-          <p className="text-sm text-muted-foreground">
-            {tenant.property} - Unit {tenant.unit}
-          </p>
-        </div>
-         <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className='h-8 w-8'>
-                    <MoreVertical className="h-4 w-4" />
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-                <EditTenant tenant={tenant} />
-                <DropdownMenuItem className="text-destructive">
-                    Delete Tenant
-                </DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
-      </CardHeader>
-      <CardContent className="flex-grow space-y-3">
-        <div className="flex items-center gap-3 text-sm">
-            <Phone className="h-4 w-4 text-muted-foreground" />
-            <span>{tenant.phone}</span>
-        </div>
-        <div className="flex items-center gap-3 text-sm">
-            <Mail className="h-4 w-4 text-muted-foreground" />
-            <span>{tenant.email}</span>
-        </div>
-        <div className='flex items-center justify-between pt-2'>
-            <div className='text-sm'>
-                <p className="text-muted-foreground">Rent</p>
-                <p className="font-semibold">ZMW {tenant.rentAmount.toLocaleString()}</p>
+    <Card className="flex flex-col transition-all hover:shadow-md">
+       <Link href={`/tenants/${tenant.id}`} className="flex flex-col flex-grow">
+        <CardHeader className="flex flex-row items-start gap-4">
+            <Avatar className="h-14 w-14">
+            {avatar && (
+                <AvatarImage asChild src={avatar.imageUrl}>
+                    <Image src={avatar.imageUrl} alt={tenant.name} width={56} height={56} data-ai-hint={avatar.imageHint} />
+                </AvatarImage>
+            )}
+            <AvatarFallback className="text-xl">
+                {tenant.name
+                .split(' ')
+                .map((n) => n[0])
+                .join('')}
+            </AvatarFallback>
+            </Avatar>
+            <div className='flex-1'>
+            <h3 className="text-lg font-bold">{tenant.name}</h3>
+            <p className="text-sm text-muted-foreground">
+                {tenant.property} - Unit {tenant.unit}
+            </p>
             </div>
-             <Badge className={cn('text-xs', statusStyles[tenant.rentStatus])}>
-                {tenant.rentStatus}
-            </Badge>
-        </div>
-      </CardContent>
+        </CardHeader>
+        <CardContent className="flex-grow space-y-3">
+            <div className="flex items-center gap-3 text-sm">
+                <Phone className="h-4 w-4 text-muted-foreground" />
+                <span>{tenant.phone}</span>
+            </div>
+            <div className="flex items-center gap-3 text-sm">
+                <Mail className="h-4 w-4 text-muted-foreground" />
+                <span>{tenant.email}</span>
+            </div>
+            <div className='flex items-center justify-between pt-2'>
+                <div className='text-sm'>
+                    <p className="text-muted-foreground">Rent</p>
+                    <p className="font-semibold">ZMW {tenant.rentAmount.toLocaleString()}</p>
+                </div>
+                <Badge className={cn('text-xs', statusStyles[tenant.rentStatus])}>
+                    {tenant.rentStatus}
+                </Badge>
+            </div>
+        </CardContent>
+      </Link>
       <CardFooter className="flex gap-2">
         <LogPayment tenant={tenant}>
             <Button variant="outline" className="w-full">
                 Log Payment
             </Button>
         </LogPayment>
-        <Link href={`/communication?tenantId=${tenant.id}`} className='w-full'>
-          <Button className="w-full">Send Reminder</Button>
-        </Link>
+         <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className='h-10 w-10'>
+                    <MoreVertical className="h-4 w-4" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                 <DropdownMenuItem asChild>
+                    <Link href={`/communication?tenantId=${tenant.id}`}>
+                        Send Reminder
+                    </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <EditTenant tenant={tenant} />
+                <DropdownMenuItem className="text-destructive">
+                    Delete Tenant
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
       </CardFooter>
     </Card>
   );
