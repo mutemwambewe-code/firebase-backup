@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { tenants } from '@/lib/data';
+import { useRouter } from 'next/navigation';
 
 // Helper to get past 6 months
 const getPastSixMonths = () => {
@@ -25,12 +26,18 @@ const getPastSixMonths = () => {
 const aggregateRentData = () => {
   const months = getPastSixMonths();
   const allPayments = tenants.flatMap(t => t.paymentHistory.map(p => ({...p, rentAmount: t.rentAmount})));
-  const totalRentDue = tenants.reduce((acc, tenant) => acc + tenant.rentAmount, 0);
-
+  
   return months.map(month => {
     const monthKey = month.toLocaleString('default', { month: 'short' });
     const year = month.getFullYear();
     
+    // Calculate total due for that month based on active leases
+    const totalRentDue = tenants.filter(t => {
+        const leaseStart = new Date(t.leaseStartDate);
+        const leaseEnd = new Date(t.leaseEndDate);
+        return leaseStart <= month && leaseEnd >= month;
+    }).reduce((acc, tenant) => acc + tenant.rentAmount, 0);
+
     const collectedForMonth = allPayments
       .filter(p => {
         const paymentDate = new Date(p.date);
@@ -68,8 +75,14 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   };
 
 export function RentStatusChart() {
+  const router = useRouter();
+
+  const handleChartClick = () => {
+    router.push('/reports');
+  };
+  
   return (
-    <Card className="shadow-none h-full">
+    <Card className="shadow-none h-full cursor-pointer hover:border-primary/50 transition-colors" onClick={handleChartClick}>
       <CardHeader>
         <CardTitle>Rent Collection Trend</CardTitle>
         <CardDescription>Last 6 months collection vs. due amount.</CardDescription>

@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/card';
 import { tenants } from '@/lib/data';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { useRouter } from 'next/navigation';
 
 const statusData = [
   { name: 'Paid', value: tenants.filter(t => t.rentStatus === 'Paid').length },
@@ -31,7 +32,15 @@ const CustomTooltip = ({ active, payload }: any) => {
   };
 
 export default function TenantActivity() {
+  const router = useRouter();
   const totalTenants = statusData.reduce((acc, entry) => acc + entry.value, 0);
+  
+  const handlePieClick = (data: any) => {
+    const status = data.name;
+    if (status) {
+      router.push(`/tenants?filter=${status}`);
+    }
+  };
 
   return (
     <Card className="shadow-none h-full">
@@ -53,6 +62,8 @@ export default function TenantActivity() {
                     innerRadius={70}
                     fill="#8884d8"
                     dataKey="value"
+                    onClick={handlePieClick}
+                    className='cursor-pointer'
                     label={({ cx, cy, midAngle, innerRadius, outerRadius, value, index }) => {
                         const RADIAN = Math.PI / 180;
                         const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
@@ -60,14 +71,14 @@ export default function TenantActivity() {
                         const y = cy  + radius * Math.sin(-midAngle * RADIAN);
             
                         return (
-                          <text x={x} y={y} fill="hsl(var(--primary-foreground))" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
+                          <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" className='font-bold'>
                             {`${((value / totalTenants) * 100).toFixed(0)}%`}
                           </text>
                         );
                       }}
                 >
                     {statusData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke={COLORS[index % COLORS.length]} />
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke={'hsl(var(--card))'} strokeWidth={2} />
                     ))}
                 </Pie>
                 <Tooltip content={<CustomTooltip />} />
