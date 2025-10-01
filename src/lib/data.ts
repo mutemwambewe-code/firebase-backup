@@ -1,4 +1,4 @@
-import type { Tenant, Property, OverviewStats } from './types';
+import type { Tenant, Property, OverviewStats, Template } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
 const tenantImages = {
@@ -106,6 +106,52 @@ export const tenants: Tenant[] = [
     ],
   },
 ];
+
+export const initialTemplates: Template[] = [
+    {
+        id: 'tmpl1',
+        category: "Rent Reminders",
+        title: "Gentle Rent Due Reminder",
+        content: "Hi {{name}}, just a friendly reminder that your rent of ZMW {{rent_due}} is due on {{due_date}}. Thank you!"
+    },
+    {
+        id: 'tmpl2',
+        category: "Rent Reminders",
+        title: "Rent Overdue Notice",
+        content: "Hi {{name}}, your rent of ZMW {{rent_due}} was due on {{due_date}} and is now overdue. Please make the payment as soon as possible to avoid late fees. Thank you."
+    },
+    {
+        id: 'tmpl3',
+        category: "Lease Management",
+        title: "Lease Expiration Reminder",
+        content: "Hi {{name}}, this is a reminder that your lease for unit {{unit}} at {{property}} is set to expire on {{lease_end_date}}. Please let us know if you plan to renew. Thanks!"
+    },
+    {
+        id: 'tmpl4',
+        category: "Lease Management",
+        title: "Lease Renewal Confirmation",
+        content: "Hi {{name}}, thank you for renewing your lease for another term. We're happy to have you continue your stay with us at {{property}}."
+    },
+    {
+        id: 'tmpl5',
+        category: "Payments",
+        title: "Payment Confirmation",
+        content: "Hi {{name}}, we have received your payment of ZMW {{payment_amount}}. Thank you for being a great tenant!"
+    },
+    {
+        id: 'tmpl6',
+        category: "General Announcements",
+        title: "Maintenance Announcement",
+        content: "Hello residents of {{property}}, please be advised that scheduled maintenance will occur on {{date}} between {{start_time}} and {{end_time}}. We apologize for any inconvenience."
+    },
+    {
+        id: 'tmpl7',
+        category: "General Announcements",
+        title: "Holiday Greetings",
+        content: "Warm holiday wishes to all our tenants! We hope you have a wonderful and safe holiday season."
+    }
+];
+
 
 export const overviewStats: OverviewStats = {
   totalUnits: properties.reduce((sum, prop) => sum + prop.units, 0),

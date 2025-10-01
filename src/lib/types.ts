@@ -46,3 +46,10 @@ export type MessageLog = {
     date: string;
     method: 'SMS' | 'WhatsApp';
 }
+
+export type Template = {
+  id: string;
+  title: string;
+  content: string;
+  category: string;
+};

@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { TenantProvider } from '@/components/tenants/tenant-provider';
 import { PropertyProvider } from '@/components/properties/property-provider';
 import { MessageLogProvider } from '@/components/communication/message-log-provider';
+import { TemplateProvider } from '@/components/communication/template-provider';
 
 export const metadata: Metadata = {
   title: 'PropBot Zambia',
@@ -28,9 +29,11 @@ export default function RootLayout({
         <AppProviders>
           <PropertyProvider>
             <TenantProvider>
+              <TemplateProvider>
                 <MessageLogProvider>
                     <AppLayout>{children}</AppLayout>
                 </MessageLogProvider>
+              </TemplateProvider>
             </TenantProvider>
           </PropertyProvider>
           <Toaster />
