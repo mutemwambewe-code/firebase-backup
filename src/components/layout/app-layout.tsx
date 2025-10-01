@@ -17,10 +17,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <nav className="flex flex-col items-center gap-4 px-2 py-4">
           <Link
             href="/dashboard"
-            className="group flex h-12 w-12 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground"
+            className="group flex h-12 w-12 shrink-0 items-center justify-center gap-2 rounded-full text-lg font-semibold text-primary"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6 transition-all group-hover:scale-110"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-            <span className="sr-only">PropEase Zambia</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>
+            <span className="sr-only">PropBot</span>
           </Link>
           <TooltipProvider>
             {navLinks.map(({ href, label, icon: Icon }) => (
@@ -29,9 +29,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   <Link
                     href={href}
                     className={cn(
-                      'flex h-10 w-10 items-center justify-center rounded-lg transition-colors hover:text-foreground',
+                      'flex h-10 w-10 items-center justify-center rounded-lg transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
                       pathname.startsWith(href)
-                        ? 'bg-sidebar-accent text-accent-foreground'
+                        ? 'bg-sidebar-accent text-sidebar-accent-foreground'
                         : 'text-muted-foreground'
                     )}
                   >
@@ -51,8 +51,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <Link
                   href={settingsLink.href}
                   className={cn(
-                    'flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground',
-                     pathname.startsWith(settingsLink.href) && 'text-foreground'
+                    'flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+                     pathname.startsWith(settingsLink.href) && 'bg-sidebar-accent text-sidebar-accent-foreground'
                   )}
                 >
                   <settingsLink.icon className="h-5 w-5" />

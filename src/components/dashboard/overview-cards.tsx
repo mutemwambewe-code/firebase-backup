@@ -1,6 +1,13 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { DollarSign, Home, Users, AlertTriangle } from 'lucide-react';
 import { overviewStats } from '@/lib/data';
+import { cn } from '@/lib/utils';
+import { TrendingUp } from 'lucide-react';
+
+const occupancyRate = (
+  (overviewStats.occupiedUnits / overviewStats.totalUnits) *
+  100
+).toFixed(1);
 
 const cardData = [
   {
@@ -13,48 +20,48 @@ const cardData = [
     title: 'Occupied Units',
     value: overviewStats.occupiedUnits,
     icon: Users,
-    description: `${(
-      (overviewStats.occupiedUnits / overviewStats.totalUnits) *
-      100
-    ).toFixed(0)}% occupancy`,
+    description: (
+      <span className="flex items-center gap-1">
+        <TrendingUp className="h-4 w-4 text-accent" />
+        <span className="text-accent">{occupancyRate}%</span> occupancy
+      </span>
+    ),
   },
   {
     title: 'Rent Collected (Month)',
     value: `ZMW ${overviewStats.rentCollected.toLocaleString()}`,
     icon: DollarSign,
-    description: `ZMW ${overviewStats.rentPending.toLocaleString()} pending`,
+    description: `ZMW ${overviewStats.rentPending.toLocaleString()} outstanding`,
   },
   {
-    title: 'Overdue Tenants',
+    title: 'Tenants in Arrears',
     value: overviewStats.overdueTenants,
     icon: AlertTriangle,
-    description: 'Require immediate attention',
-    className: 'text-destructive',
+    description: 'Require follow-up',
+    className: 'text-yellow-600 dark:text-yellow-400',
+    iconClassName: 'text-yellow-500',
   },
 ];
 
 export function OverviewCards() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {cardData.map((card) => (
-        <Card key={card.title}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
-            <card.icon className={cn('h-4 w-4 text-muted-foreground', card.className)} />
-          </CardHeader>
-          <CardContent>
-            <div className={cn('text-2xl font-bold', card.className)}>
-              {card.value}
-            </div>
-            <p className="text-xs text-muted-foreground">{card.description}</p>
+        <Card key={card.title} className="shadow-none">
+          <CardContent className="p-4 flex items-start gap-4">
+             <div className={cn("p-3 rounded-lg bg-secondary", card.iconClassName)}>
+                <card.icon className={cn('h-6 w-6 text-muted-foreground', card.className)} />
+             </div>
+             <div>
+                <p className="text-sm text-muted-foreground">{card.title}</p>
+                <p className={cn('text-2xl font-bold', card.className)}>
+                  {card.value}
+                </p>
+                <p className="text-xs text-muted-foreground">{card.description}</p>
+             </div>
           </CardContent>
         </Card>
       ))}
     </div>
   );
-}
-
-// Helper function to concatenate class names
-function cn(...classes: (string | undefined | null | false)[]) {
-  return classes.filter(Boolean).join(' ');
 }

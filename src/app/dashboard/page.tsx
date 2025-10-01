@@ -2,7 +2,7 @@ import { OverviewCards } from '@/components/dashboard/overview-cards';
 import { RentStatusChart } from '@/components/dashboard/rent-status-chart';
 import TenantActivity from '@/components/dashboard/tenant-activity';
 import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
+import { MessageSquare, Plus, Receipt } from 'lucide-react';
 import Link from 'next/link';
 
 export default function DashboardPage() {
@@ -12,26 +12,31 @@ export default function DashboardPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground">
-            Welcome back! Here's a summary of your properties.
+            Here&apos;s a summary of your properties.
           </p>
         </div>
         <div className="flex items-center gap-2">
-            <Link href="/tenants">
-                <Button>
-                    <PlusCircle className="mr-2 h-4 w-4" /> Add Tenant
-                </Button>
-            </Link>
-            <Link href="/communication">
-                <Button variant="secondary">Send Reminders</Button>
-            </Link>
+            <Button variant="outline">
+                <Plus className="mr-2" /> Add Tenant
+            </Button>
+            <Button variant="outline">
+                <MessageSquare className="mr-2" /> Send Message
+            </Button>
+            <Button>
+                <Receipt className="mr-2" /> Record Payment
+            </Button>
         </div>
       </div>
       
       <OverviewCards />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <RentStatusChart />
-        <TenantActivity />
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <div className="lg:col-span-3">
+          <RentStatusChart />
+        </div>
+        <div className="lg:col-span-2">
+          <TenantActivity />
+        </div>
       </div>
     </div>
   );
