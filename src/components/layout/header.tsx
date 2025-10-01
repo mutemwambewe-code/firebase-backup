@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { PanelLeft, Settings, Sun, Moon, Search } from 'lucide-react';
+import { PanelLeft, Settings, Sun, Moon } from 'lucide-react';
 import { useTheme } from '@/components/providers/app-providers';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,7 +17,6 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { navLinks, settingsLink } from './nav-links';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Input } from '../ui/input';
 import { cn } from '@/lib/utils';
 
 export function Header() {
@@ -74,10 +73,7 @@ export function Header() {
         </SheetContent>
       </Sheet>
       
-      <div className="relative flex-1">
-        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Search..." className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px] shadow-none" />
-      </div>
+      <div className="flex-1" />
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
