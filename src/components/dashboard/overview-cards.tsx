@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { TrendingUp } from 'lucide-react';
 
 const totalUnits = properties.reduce((sum, prop) => sum + prop.units, 0);
-const occupiedUnits = properties.reduce((sum, prop) => sum + prop.occupied, 0);
+const occupiedUnits = tenants.length;
 const overdueTenants = tenants.filter(t => t.rentStatus === 'Overdue').length;
 
 const currentMonth = new Date().getMonth();
