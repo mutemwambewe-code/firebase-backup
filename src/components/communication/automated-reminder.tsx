@@ -31,15 +31,19 @@ type FormData = z.infer<typeof formSchema>;
 
 const tags = ['name', 'rent_due', 'arrears', 'due_date', 'property', 'lease_end_date'];
 
-export function AutomatedReminder() {
+interface AutomatedReminderProps {
+    message: string;
+    setMessage: (message: string) => void;
+}
+
+export function AutomatedReminder({ message, setMessage }: AutomatedReminderProps) {
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const { tenants } = useTenants();
   const { addMessageLog } = useMessageLog();
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<AutomatedCommunicationOutput | null>(null);
-  const [message, setMessage] = useState('');
-
+  
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -48,17 +52,24 @@ export function AutomatedReminder() {
     },
   });
 
-  const { control, handleSubmit, watch, formState: { errors } } = form;
+  const { control, handleSubmit, watch, formState: { errors }, setValue } = form;
 
   const selectedTenantId = watch('tenantId');
   const recipientType = watch('recipientType');
   const selectedTenant = tenants.find((t) => t.id === selectedTenantId);
+  
+  useEffect(() => {
+    const tenantIdFromParams = searchParams.get('tenantId');
+    if (tenantIdFromParams) {
+        setValue('tenantId', tenantIdFromParams);
+    }
+  }, [searchParams, setValue]);
 
   useEffect(() => {
     if (result) {
       setMessage(result.message);
     }
-  }, [result]);
+  }, [result, setMessage]);
 
   async function onSubmit(data: FormData) {
     if (!selectedTenant) return;
@@ -161,6 +172,7 @@ export function AutomatedReminder() {
                     }} 
                     defaultValue={field.value}
                     disabled={recipientType === 'group'}
+                    value={field.value}
                   >
                     <SelectTrigger id="tenantId">
                       <SelectValue placeholder="Select a tenant" />

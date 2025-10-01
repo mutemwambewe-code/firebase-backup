@@ -16,18 +16,14 @@ import { AddTemplate } from "./add-template";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "../ui/dropdown-menu";
 import type { Template } from "@/lib/types";
 
-export function MessageTemplates() {
+interface MessageTemplatesProps {
+    onTemplateSelect: (content: string) => void;
+}
+
+export function MessageTemplates({ onTemplateSelect }: MessageTemplatesProps) {
   const { toast } = useToast();
   const { templates, isInitialized, deleteTemplate } = useTemplates();
   
-  const handleCopy = (content: string) => {
-    navigator.clipboard.writeText(content);
-    toast({
-        title: "Template Copied!",
-        description: "You can now paste the template in the compose box."
-    })
-  }
-
   const handleDelete = (template: Template) => {
     let deletionTimeout: NodeJS.Timeout;
 
@@ -90,21 +86,22 @@ export function MessageTemplates() {
                         <AccordionContent>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {items.map(template => (
-                                    <Card key={template.id} className="flex flex-col">
+                                    <Card 
+                                        key={template.id} 
+                                        className="flex flex-col cursor-pointer hover:border-primary"
+                                        onClick={() => onTemplateSelect(template.content)}
+                                    >
                                         <CardHeader>
                                             <div className="flex justify-between items-start">
                                                 <CardTitle className="text-base flex-grow">{template.title}</CardTitle>
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="icon" className="h-8 w-8 -mt-2 -mr-2">
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8 -mt-2 -mr-2" onClick={(e) => e.stopPropagation()}>
                                                             <MoreVertical className="h-4 w-4"/>
                                                         </Button>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
-                                                        <DropdownMenuItem onClick={() => handleCopy(template.content)}>
-                                                            <Clipboard className="mr-2 h-4 w-4" /> Copy
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem className="text-destructive" onClick={() => handleDelete(template)}>
+                                                        <DropdownMenuItem className="text-destructive" onClick={(e) => {e.stopPropagation(); handleDelete(template)}}>
                                                             <Trash2 className="mr-2 h-4 w-4" /> Delete
                                                         </DropdownMenuItem>
                                                     </DropdownMenuContent>

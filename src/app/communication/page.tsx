@@ -6,8 +6,17 @@ import { MessageLogs } from "@/components/communication/message-logs";
 import { MessageTemplates } from "@/components/communication/message-templates";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, History, MessagesSquare } from "lucide-react";
+import { useState } from "react";
 
 export default function CommunicationPage() {
+  const [activeTab, setActiveTab] = useState("compose");
+  const [message, setMessage] = useState("");
+
+  const handleTemplateSelect = (content: string) => {
+    setMessage(content);
+    setActiveTab("compose");
+  };
+
   return (
     <div className="flex flex-col gap-6 max-w-4xl mx-auto">
       <div>
@@ -17,7 +26,7 @@ export default function CommunicationPage() {
         </p>
       </div>
 
-      <Tabs defaultValue="compose" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="compose">
             <MessagesSquare className="mr-2" />
@@ -33,13 +42,13 @@ export default function CommunicationPage() {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="compose">
-          <AutomatedReminder />
+          <AutomatedReminder message={message} setMessage={setMessage} />
         </TabsContent>
         <TabsContent value="logs">
             <MessageLogs />
         </TabsContent>
         <TabsContent value="templates">
-          <MessageTemplates />
+          <MessageTemplates onTemplateSelect={handleTemplateSelect} />
         </TabsContent>
       </Tabs>
     </div>
