@@ -64,13 +64,12 @@ export function AddTenant({ asChild, className }: { asChild?: boolean; className
   });
 
   function onSubmit(values: FormData) {
-    const randomAvatar = PlaceHolderImages[Math.floor(Math.random() * 5)];
     const newTenant: Tenant = {
       ...values,
       leaseStartDate: format(values.leaseStartDate, 'yyyy-MM-dd'),
       leaseEndDate: format(values.leaseEndDate, 'yyyy-MM-dd'),
       id: `t${Date.now()}`,
-      avatarUrl: randomAvatar.imageUrl,
+      avatarUrl: '',
       rentStatus: 'Pending',
       paymentHistorySummary: 'New tenant.',
       paymentHistory: [],
