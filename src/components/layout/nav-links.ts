@@ -1,4 +1,4 @@
-import { Home, Users, MessageSquare, BarChart, Settings, type LucideIcon } from 'lucide-react';
+import { Home, Users, MessageSquare, BarChart, Settings, type LucideIcon, Building } from 'lucide-react';
 
 export type NavLink = {
   href: string;
@@ -9,6 +9,7 @@ export type NavLink = {
 export const navLinks: NavLink[] = [
   { href: '/dashboard', label: 'Dashboard', icon: Home },
   { href: '/tenants', label: 'Tenants', icon: Users },
+  { href: '/properties', label: 'Properties', icon: Building },
   { href: '/communication', label: 'Communication', icon: MessageSquare },
   { href: '/reports', label: 'Reports', icon: BarChart },
 ];
