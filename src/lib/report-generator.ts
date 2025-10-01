@@ -6,7 +6,7 @@ import 'jspdf-autotable';
 import type { jsPDF as jsPDFType } from 'jspdf';
 import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
-import type { Tenant, Payment, Property, EnrichedPayment } from './types';
+import type { Tenant, EnrichedPayment } from './types';
 
 // Extend the jsPDF interface to include autoTable
 declare module 'jspdf' {
@@ -44,6 +44,53 @@ const addFooter = (doc: jsPDFType, pageCount: number) => {
   }
 };
 
+const createStyledExcelSheet = (data: any[], title: string, sheetName: string) => {
+    const workbook = XLSX.utils.book_new();
+
+    // Create a new worksheet with headers
+    const header = [title];
+    const generatedDate = [`Report Generated: ${format(new Date(), 'PPP')}`];
+    
+    const ws_data = [
+        header,
+        generatedDate,
+        [], // Empty row for spacing
+    ];
+
+    const worksheet = XLSX.utils.aoa_to_sheet(ws_data);
+    
+    // Append JSON data starting from the 4th row
+    XLSX.utils.sheet_add_json(worksheet, data, {
+        origin: 'A4',
+        skipHeader: false,
+    });
+
+    // Auto-fit columns
+    const cols = Object.keys(data[0] || {});
+    const colWidths = cols.map(key => ({
+        wch: Math.max(
+            key.length,
+            ...data.map(row => String(row[key] || '').length)
+        ) + 2
+    }));
+
+    worksheet['!cols'] = colWidths;
+    
+    // Style the title
+    if(worksheet['A1']) {
+        worksheet['A1'].s = {
+            font: {
+                bold: true,
+                sz: 16,
+            }
+        };
+    }
+    
+    XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+    return workbook;
+}
+
+
 export const generateTenantListPDF = (tenants: Tenant[]) => {
   const doc = new jsPDF();
   addHeader(doc, "Tenant List");
@@ -78,8 +125,7 @@ export const generateTenantListPDF = (tenants: Tenant[]) => {
 };
 
 export const generateTenantListExcel = (tenants: Tenant[]) => {
-  const worksheet = XLSX.utils.json_to_sheet(
-    tenants.map(t => ({
+  const data = tenants.map(t => ({
       Name: t.name,
       Property: t.property,
       Unit: t.unit,
@@ -89,10 +135,9 @@ export const generateTenantListExcel = (tenants: Tenant[]) => {
       'Rent Amount': t.rentAmount,
       'Lease Start': t.leaseStartDate,
       'Lease End': t.leaseEndDate,
-    }))
-  );
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Tenants');
+    }));
+    
+  const workbook = createStyledExcelSheet(data, 'PropBot Tenant List', 'Tenants');
   XLSX.writeFile(workbook, `PropBot_Tenant_List_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
 };
 
@@ -144,17 +189,15 @@ export const generatePaymentHistoryPDF = (payments: EnrichedPayment[]) => {
 
 
 export const generatePaymentHistoryExcel = (payments: EnrichedPayment[]) => {
-    const worksheet = XLSX.utils.json_to_sheet(
-        payments.map(p => ({
+    const data = payments.map(p => ({
             'Date': format(new Date(p.date), 'yyyy-MM-dd'),
             'Tenant Name': p.tenantName,
             'Property': p.property,
             'Unit': p.unit,
             'Amount': p.amount,
             'Method': p.method,
-        }))
-    );
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Payment History');
+        }));
+        
+    const workbook = createStyledExcelSheet(data, 'PropBot Payment History', 'Payment History');
     XLSX.writeFile(workbook, `PropBot_Payment_History_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
 };
