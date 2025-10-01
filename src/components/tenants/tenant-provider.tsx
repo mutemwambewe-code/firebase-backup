@@ -8,7 +8,7 @@ type TenantContextType = {
   tenants: Tenant[];
   addTenant: (tenant: Tenant) => void;
   updateTenant: (tenant: Tenant) => void;
-  // In a real app, you'd have deleteTenant, etc.
+  isInitialized: boolean;
 };
 
 const TenantContext = createContext<TenantContextType | undefined>(undefined);
@@ -58,7 +58,8 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   const value = {
     tenants,
     addTenant,
-    updateTenant
+    updateTenant,
+    isInitialized
   };
 
   return <TenantContext.Provider value={value}>{children}</TenantContext.Provider>;
