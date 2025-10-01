@@ -35,7 +35,7 @@ export default function TenantActivity() {
     { name: 'Overdue', value: tenants.filter(t => t.rentStatus === 'Overdue').length },
   ];
 
-  const totalTenants = statusData.reduce((acc, entry) => acc + entry.value, 0);
+  const totalTenants = tenants.length;
   
   const handlePieClick = (data: any) => {
     const status = data.name;
@@ -74,7 +74,7 @@ export default function TenantActivity() {
                         const y = cy  + radius * Math.sin(-midAngle * RADIAN);
             
                         return (
-                          <text x={x} y={y} fill="hsl(var(--primary-foreground))" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" className='font-bold text-base'>
+                          <text x={x} y={y} fill="hsl(var(--card-foreground))" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" className='font-bold text-lg'>
                             {`${((value / totalTenants) * 100).toFixed(0)}%`}
                           </text>
                         );
