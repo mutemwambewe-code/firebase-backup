@@ -37,3 +37,12 @@ export type OverviewStats = {
   rentPending: number;
   overdueTenants: number;
 };
+
+export type MessageLog = {
+    id: string;
+    tenantId: string;
+    tenantName: string;
+    message: string;
+    date: string;
+    method: 'SMS' | 'WhatsApp';
+}

@@ -2,6 +2,7 @@
 'use client';
 
 import { AutomatedReminder } from "@/components/communication/automated-reminder";
+import { MessageLogs } from "@/components/communication/message-logs";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, History, MessagesSquare } from "lucide-react";
 
@@ -21,7 +22,7 @@ export default function CommunicationPage() {
             <MessagesSquare className="mr-2" />
             Compose
           </TabsTrigger>
-          <TabsTrigger value="logs" disabled>
+          <TabsTrigger value="logs">
             <History className="mr-2" />
             Message Logs
           </TabsTrigger>
@@ -34,7 +35,7 @@ export default function CommunicationPage() {
           <AutomatedReminder />
         </TabsContent>
         <TabsContent value="logs">
-          {/* Placeholder for future message logs component */}
+            <MessageLogs />
         </TabsContent>
         <TabsContent value="templates">
           {/* Placeholder for future templates component */}

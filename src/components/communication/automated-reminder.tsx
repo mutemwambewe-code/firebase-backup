@@ -2,7 +2,7 @@
 'use client';
 
 import { automatedCommunication, type AutomatedCommunicationOutput } from '@/ai/flows/automated-communication';
-import { tenants } from '@/lib/data';
+import { useTenants } from '@/components/tenants/tenant-provider';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -20,6 +20,7 @@ import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { Badge } from '../ui/badge';
 import { cn } from '@/lib/utils';
 import { Form, FormItem, FormControl } from '../ui/form';
+import { useMessageLog } from './message-log-provider';
 
 const formSchema = z.object({
   tenantId: z.string().min(1, 'Please select a tenant.'),
@@ -33,6 +34,8 @@ const tags = ['name', 'rent_due', 'arrears', 'due_date', 'property', 'lease_end_
 export function AutomatedReminder() {
   const searchParams = useSearchParams();
   const { toast } = useToast();
+  const { tenants } = useTenants();
+  const { addMessageLog } = useMessageLog();
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<AutomatedCommunicationOutput | null>(null);
   const [message, setMessage] = useState('');
@@ -88,15 +91,28 @@ export function AutomatedReminder() {
   }
 
   const handleSend = () => {
+    if (!selectedTenant || !message) return;
+
+    addMessageLog({
+        id: `msg_${Date.now()}`,
+        tenantId: selectedTenant.id,
+        tenantName: selectedTenant.name,
+        message: message,
+        date: new Date().toISOString(),
+        method: result?.communicationMethod || 'SMS',
+    });
+
     toast({
         title: "Message Sent!",
-        description: `Your message has been sent to ${selectedTenant?.name}.`
-    })
+        description: `Your message has been sent to ${selectedTenant.name}.`
+    });
+    setMessage('');
+    setResult(null);
   }
 
   const handleTagClick = (tag: string) => {
     setMessage(prev => `${prev} {{${tag}}}`);
-  }
+  };
 
   return (
     <Card className="mt-4 border-none shadow-none">
