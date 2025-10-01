@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { PanelLeft, Settings, Sun, Moon } from 'lucide-react';
+import { PanelLeft, Settings, Sun, Moon, Building } from 'lucide-react';
 import { useTheme } from '@/components/providers/app-providers';
 import { Button } from '@/components/ui/button';
 import {
@@ -39,7 +39,7 @@ export function Header() {
               href="/dashboard"
               className="group flex h-10 shrink-0 items-center justify-start gap-2 text-lg font-semibold text-primary md:text-base"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>
+              <Building className="h-6 w-6" />
               <span className="font-bold text-xl text-foreground">PropBot</span>
             </Link>
             {navLinks.map(({ href, label, icon: Icon }) => (
@@ -73,7 +73,9 @@ export function Header() {
         </SheetContent>
       </Sheet>
       
-      <div className="flex-1" />
+      <div className="flex-1">
+        <h1 className="font-semibold text-lg hidden sm:block">PropBot</h1>
+      </div>
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

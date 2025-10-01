@@ -7,19 +7,21 @@ import { Header } from './header';
 import { navLinks, settingsLink } from './nav-links';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Building } from 'lucide-react';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   return (
     <div className="flex min-h-screen w-full">
-      <aside className="hidden border-r bg-sidebar text-sidebar-foreground sm:flex flex-col sticky top-0 h-screen">
+      <aside className="hidden border-r bg-sidebar text-sidebar-foreground sm:flex">
+        <div className="flex flex-col sticky top-0 h-screen">
           <nav className="flex flex-col items-center gap-4 px-2 py-4 flex-1">
             <Link
               href="/dashboard"
               className="group flex h-12 w-12 shrink-0 items-center justify-center gap-2 rounded-full text-lg font-semibold text-primary"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>
+              <Building className="h-6 w-6" />
               <span className="sr-only">PropBot</span>
             </Link>
             <TooltipProvider>
@@ -44,7 +46,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               ))}
             </TooltipProvider>
           </nav>
-          <nav className="flex flex-col items-center gap-4 px-2 py-4">
+          <nav className="mt-auto flex flex-col items-center gap-4 px-2 py-4">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -63,6 +65,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               </Tooltip>
             </TooltipProvider>
           </nav>
+        </div>
       </aside>
       <div className="flex flex-1 flex-col">
         <Header />
