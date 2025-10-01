@@ -19,7 +19,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useProperties } from './property-provider';
 import { useToast } from '@/hooks/use-toast';
 import type { Property } from '@/lib/types';
-import { Edit } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 const formSchema = z.object({
@@ -31,62 +30,43 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-interface EditPropertyProps {
-  property: Property;
-}
-
-export function EditProperty({ property }: EditPropertyProps) {
+export function AddProperty({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
-  const { updateProperty } = useProperties();
+  const { addProperty } = useProperties();
   const { toast } = useToast();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: property.name,
-      location: property.location,
-      units: property.units,
-      type: property.type,
+      name: '',
+      location: '',
+      units: 1,
+      type: 'Residential Apartments',
     },
   });
 
   function onSubmit(values: FormData) {
-    const updatedProperty: Property = {
-      ...property,
+    const newProperty: Property = {
       ...values,
+      id: `prop${Date.now()}`,
+      occupied: 0,
     };
-    updateProperty(updatedProperty);
+    addProperty(newProperty);
     toast({
-      title: 'Property Updated!',
-      description: `${updatedProperty.name}'s details have been updated.`,
+      title: 'Property Added!',
+      description: `${newProperty.name} has been added to your property list.`,
     });
     setOpen(false);
+    form.reset();
   }
 
-  const handleOpenChange = (isOpen: boolean) => {
-    if (isOpen) {
-      form.reset({
-        name: property.name,
-        location: property.location,
-        units: property.units,
-        type: property.type,
-      });
-    }
-    setOpen(isOpen);
-  };
-
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <Button>
-          <Edit className="mr-2 h-4 w-4" />
-          Edit Property
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Edit Property</DialogTitle>
-          <DialogDescription>Update the details for {property.name}.</DialogDescription>
+          <DialogTitle>Add New Property</DialogTitle>
+          <DialogDescription>Enter the details of the new property below.</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -116,7 +96,7 @@ export function EditProperty({ property }: EditPropertyProps) {
                 </FormItem>
               )}
             />
-             <FormField
+            <FormField
               control={form.control}
               name="type"
               render={({ field }) => (
@@ -154,7 +134,7 @@ export function EditProperty({ property }: EditPropertyProps) {
               )}
             />
             <DialogFooter>
-              <Button type="submit">Save Changes</Button>
+              <Button type="submit">Save Property</Button>
             </DialogFooter>
           </form>
         </Form>

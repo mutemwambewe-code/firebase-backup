@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Image from 'next/image';
-import { ArrowLeft, Building, MapPin, Users } from 'lucide-react';
+import { ArrowLeft, Building, MapPin, Users, Tag } from 'lucide-react';
 import Link from 'next/link';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
@@ -72,10 +72,16 @@ export default function PropertyDetailPage() {
                     <Building className="h-8 w-8" />
                     {property.name}
                 </CardTitle>
-                <CardDescription className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    {property.location}
-                </CardDescription>
+                <div className="flex items-center gap-4 text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4" />
+                        {property.location}
+                    </div>
+                     <div className="flex items-center gap-2">
+                        <Tag className="h-4 w-4" />
+                        {property.type}
+                    </div>
+                </div>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="flex items-center gap-4 p-4 border rounded-lg">

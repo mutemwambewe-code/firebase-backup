@@ -27,6 +27,7 @@ export type Property = {
   location: string;
   units: number;
   occupied: number;
+  type: 'Shopping Complex' | 'Boarding House' | 'Residential Apartments' | 'House' | 'Other';
 };
 
 export type OverviewStats = {

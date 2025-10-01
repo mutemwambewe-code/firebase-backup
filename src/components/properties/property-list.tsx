@@ -14,6 +14,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useProperties } from './property-provider';
 import { useToast } from '@/hooks/use-toast';
+import { AddProperty } from './add-property';
 
 export function PropertyList() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -53,10 +54,12 @@ export function PropertyList() {
         <div className="text-center py-16 border-2 border-dashed rounded-lg">
             <h2 className="text-xl font-semibold">No properties yet</h2>
             <p className="text-muted-foreground mt-2">Add your first property to get started.</p>
-            <Button className="mt-4" onClick={() => alert('Add property coming soon!')}>
-                <Plus className="mr-2" />
-                Add Property
-            </Button>
+            <AddProperty>
+              <Button className="mt-4">
+                  <Plus className="mr-2" />
+                  Add Property
+              </Button>
+            </AddProperty>
         </div>
     )
   }
@@ -80,10 +83,12 @@ export function PropertyList() {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
-                    <Button className='w-full sm:w-auto' onClick={() => alert('Add property coming soon!')}>
-                        <Plus className="mr-2" />
-                        Add Property
-                    </Button>
+                    <AddProperty>
+                      <Button className='w-full sm:w-auto'>
+                          <Plus className="mr-2" />
+                          Add Property
+                      </Button>
+                    </AddProperty>
                 </div>
             </div>
         </CardHeader>
@@ -93,6 +98,7 @@ export function PropertyList() {
             <TableHeader>
               <TableRow>
                 <TableHead className='w-[30%]'>Name</TableHead>
+                <TableHead>Type</TableHead>
                 <TableHead>Location</TableHead>
                 <TableHead>Total Units</TableHead>
                 <TableHead>Occupied Units</TableHead>
@@ -106,6 +112,7 @@ export function PropertyList() {
                   return (
                       <TableRow key={property.id} onClick={() => handleRowClick(property.id)} className="cursor-pointer">
                           <TableCell className="font-medium">{property.name}</TableCell>
+                          <TableCell>{property.type}</TableCell>
                           <TableCell>{property.location}</TableCell>
                           <TableCell>{property.units}</TableCell>
                           <TableCell>{property.occupied}</TableCell>
