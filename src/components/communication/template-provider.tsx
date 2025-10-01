@@ -8,6 +8,7 @@ import { initialTemplates } from '@/lib/data';
 type TemplateContextType = {
   templates: Template[];
   addTemplate: (template: Template) => void;
+  deleteTemplate: (id: string) => void;
   isInitialized: boolean;
 };
 
@@ -45,9 +46,14 @@ export function TemplateProvider({ children }: { children: ReactNode }) {
     setTemplates((prevTemplates) => [template, ...prevTemplates]);
   };
 
+  const deleteTemplate = (id: string) => {
+    setTemplates((prevTemplates) => prevTemplates.filter((t) => t.id !== id));
+  };
+
   const value = {
     templates,
     addTemplate,
+    deleteTemplate,
     isInitialized
   };
 
