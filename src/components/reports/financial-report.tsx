@@ -100,7 +100,7 @@ export function FinancialReport({ payments, tenants }: FinancialReportProps) {
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip />
+              <Tooltip cursor={{ fill: 'transparent' }} />
               <Legend />
             </PieChart>
           </ResponsiveContainer>
