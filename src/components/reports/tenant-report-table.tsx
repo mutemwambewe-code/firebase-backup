@@ -11,6 +11,7 @@ import { Search } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { useRouter } from 'next/navigation';
 
 interface TenantReportTableProps {
   tenants: Tenant[];
@@ -25,6 +26,7 @@ const statusStyles = {
 export function TenantReportTable({ tenants }: TenantReportTableProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
+  const router = useRouter();
 
   const filteredTenants = useMemo(() => {
     return tenants
@@ -37,6 +39,10 @@ export function TenantReportTable({ tenants }: TenantReportTableProps) {
         tenant.property.toLowerCase().includes(searchTerm.toLowerCase())
       );
   }, [tenants, searchTerm, statusFilter]);
+
+  const handleRowClick = (tenantId: string) => {
+    router.push(`/tenants/${tenantId}`);
+  };
 
   return (
     <Card className="mt-4">
@@ -85,7 +91,7 @@ export function TenantReportTable({ tenants }: TenantReportTableProps) {
           </TableHeader>
           <TableBody>
             {filteredTenants.map((tenant) => (
-              <TableRow key={tenant.id}>
+              <TableRow key={tenant.id} onClick={() => handleRowClick(tenant.id)} className="cursor-pointer">
                 <TableCell className="font-medium">{tenant.name}</TableCell>
                 <TableCell>{tenant.property} - {tenant.unit}</TableCell>
                 <TableCell>
