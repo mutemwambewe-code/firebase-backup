@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useTenants } from '@/components/tenants/tenant-provider';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -25,6 +25,7 @@ const statusStyles = {
 
 export default function PropertyDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const { tenants } = useTenants();
   const { properties } = useProperties();
   
@@ -53,6 +54,9 @@ export default function PropertyDetailPage() {
   const tenantsInProperty = tenants.filter(t => t.property === property.name);
   const occupancyRate = property.units > 0 ? (tenantsInProperty.length / property.units) * 100 : 0;
 
+  const handleRowClick = (tenantId: string) => {
+    router.push(`/tenants/${tenantId}`);
+  };
 
   return (
     <div className="flex flex-col gap-6 max-w-6xl mx-auto">
@@ -127,7 +131,7 @@ export default function PropertyDetailPage() {
                   </TableHeader>
                   <TableBody>
                     {tenantsInProperty.map((tenant) => (
-                      <TableRow key={tenant.id} className="cursor-pointer">
+                      <TableRow key={tenant.id} onClick={() => handleRowClick(tenant.id)} className="cursor-pointer">
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar className="h-10 w-10">
@@ -136,7 +140,7 @@ export default function PropertyDetailPage() {
                                 </AvatarImage>
                                 <AvatarFallback>{tenant.name.split(' ').map((n) => n[0]).join('')}</AvatarFallback>
                             </Avatar>
-                            <Link href={`/tenants/${tenant.id}`} className="font-medium hover:underline">{tenant.name}</Link>
+                            <span className="font-medium">{tenant.name}</span>
                           </div>
                         </TableCell>
                         <TableCell>{tenant.unit}</TableCell>
