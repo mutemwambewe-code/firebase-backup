@@ -1,0 +1,34 @@
+'use server';
+
+import AfricasTalking from 'africastalking';
+
+// Initialize Africa's Talking
+if (!process.env.AFRICASTALKING_API_KEY || !process.env.AFRICASTALKING_USERNAME) {
+  console.error("Africa's Talking credentials are not set in the environment variables.");
+}
+
+const africastalking = AfricasTalking({
+  apiKey: process.env.AFRICASTALKING_API_KEY!,
+  username: process.env.AFRICASTALKING_USERNAME!,
+});
+
+const sms = africastalking.SMS;
+
+export async function sendSms(to: string[], message: string): Promise<{ success: boolean; message: string; response?: any }> {
+  if (!process.env.AFRICASTALKING_API_KEY || !process.env.AFRICASTALKING_USERNAME) {
+    return { success: false, message: "Africa's Talking credentials are not configured on the server." };
+  }
+
+  try {
+    const response = await sms.send({
+      to,
+      message,
+      // from: 'YOUR_SENDER_ID' // Optional: Specify your Sender ID
+    });
+    console.log('SMS sent successfully:', response);
+    return { success: true, message: 'SMS sent successfully!', response };
+  } catch (error: any) {
+    console.error('Error sending SMS:', error);
+    return { success: false, message: `Failed to send SMS: ${error.toString()}` };
+  }
+}

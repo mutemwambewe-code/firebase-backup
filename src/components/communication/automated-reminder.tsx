@@ -25,6 +25,7 @@ import type { Tenant } from '@/lib/types';
 import { useProperties } from '../properties/property-provider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { MessageTemplates } from './message-templates';
+import { sendSms } from '@/app/actions/send-sms';
 
 const formSchema = z.object({
   tenantId: z.string().optional(),
@@ -64,6 +65,7 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
   const { properties } = useProperties();
   const { addMessageLog } = useMessageLog();
   const [isLoading, setIsLoading] = useState(false);
+  const [isSending, setIsSending] = useState(false);
   const [result, setResult] = useState<AutomatedCommunicationOutput | null>(null);
   
   const form = useForm<FormData>({
@@ -133,63 +135,107 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
     }
   }
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!message) return;
+    setIsSending(true);
 
     let recipients: Tenant[] = [];
-
     if (recipientType === 'individual' && selectedTenant) {
-        recipients.push(selectedTenant);
+      recipients.push(selectedTenant);
     } else if (recipientType === 'group' && groupId) {
-        if (groupId === 'all') {
-            recipients = tenants;
-        } else if (groupId === 'arrears') {
-            recipients = tenants.filter(t => t.rentStatus === 'Overdue');
-        } else if (groupId === 'pending') {
-            recipients = tenants.filter(t => t.rentStatus === 'Pending');
-        } else if (groupId.startsWith('prop-')) {
-            const propId = groupId.replace('prop-', '');
-            const prop = properties.find(p => p.id === propId);
-            if (prop) {
-                recipients = tenants.filter(t => t.property === prop.name);
-            }
+      if (groupId === 'all') {
+        recipients = tenants;
+      } else if (groupId === 'arrears') {
+        recipients = tenants.filter(t => t.rentStatus === 'Overdue');
+      } else if (groupId === 'pending') {
+        recipients = tenants.filter(t => t.rentStatus === 'Pending');
+      } else if (groupId.startsWith('prop-')) {
+        const propId = groupId.replace('prop-', '');
+        const prop = properties.find(p => p.id === propId);
+        if (prop) {
+          recipients = tenants.filter(t => t.property === prop.name);
         }
+      }
     }
     
     if(recipients.length === 0) {
-        toast({
-            variant: "destructive",
-            title: "No recipients found",
-            description: "Please select a valid tenant or group with members."
-        });
-        return;
+      toast({
+        variant: "destructive",
+        title: "No recipients found",
+        description: "Please select a valid tenant or group with members."
+      });
+      setIsSending(false);
+      return;
     }
 
-    recipients.forEach(tenant => {
-        const personalizedMessage = replacePlaceholders(message, tenant);
-        addMessageLog({
-            id: `msg_${Date.now()}_${tenant.id}`,
-            tenantId: tenant.id,
-            tenantName: tenant.name,
-            message: personalizedMessage,
-            date: new Date().toISOString(),
-            method: result?.communicationMethod || 'SMS',
-        });
-    });
+    try {
+      let messagesSentCount = 0;
+      // Handle bulk sending differently from single sends
+      if (recipientType === 'group') {
+        const phoneNumbers = recipients.map(r => r.phone);
+        // NOTE: Africa's talking doesn't support personalizing bulk messages in one go.
+        // We have to send them one by one if we want personalization.
+        for (const tenant of recipients) {
+            const personalizedMessage = replacePlaceholders(message, tenant);
+            const res = await sendSms([tenant.phone], personalizedMessage);
+            if (res.success) {
+                messagesSentCount++;
+                addMessageLog({
+                    id: `msg_${Date.now()}_${tenant.id}`,
+                    tenantId: tenant.id,
+                    tenantName: tenant.name,
+                    message: personalizedMessage,
+                    date: new Date().toISOString(),
+                    method: 'SMS',
+                });
+            } else {
+                 console.error(`Failed to send SMS to ${tenant.name}: ${res.message}`);
+            }
+        }
+      } else { // Individual sending
+        const personalizedMessage = replacePlaceholders(message, selectedTenant);
+        const res = await sendSms([selectedTenant!.phone], personalizedMessage);
+        if (res.success) {
+            messagesSentCount = 1;
+            addMessageLog({
+                id: `msg_${Date.now()}_${selectedTenant!.id}`,
+                tenantId: selectedTenant!.id,
+                tenantName: selectedTenant!.name,
+                message: personalizedMessage,
+                date: new Date().toISOString(),
+                method: 'SMS',
+            });
+        }
+      }
 
-    toast({
-        title: "Messages Sent!",
-        description: `Your message has been sent to ${recipients.length} tenant(s).`
-    });
-    setMessage('');
-    setResult(null);
+      if(messagesSentCount > 0) {
+        toast({
+            title: "Messages Sent!",
+            description: `Your message has been sent to ${messagesSentCount} tenant(s).`
+        });
+        setMessage('');
+        setResult(null);
+      } else {
+        throw new Error("SMS sending failed for all recipients.");
+      }
+
+    } catch (error: any) {
+      console.error('Error sending message:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Sending Failed',
+        description: error.message || 'Could not send the message(s). Please check server logs.',
+      });
+    } finally {
+        setIsSending(false);
+    }
   }
 
   const handleTagClick = (tag: string) => {
     setMessage(prev => `${prev} {{${tag}}}`);
   };
 
-  const isSendDisabled = !message || (recipientType === 'individual' && !selectedTenantId) || (recipientType === 'group' && !groupId);
+  const isSendDisabled = !message || isSending || (recipientType === 'individual' && !selectedTenantId) || (recipientType === 'group' && !groupId);
 
   return (
     <Card className="mt-4 border-none shadow-none">
@@ -345,12 +391,12 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
 
           </CardContent>
           <CardFooter className="flex justify-between items-center border-t pt-6">
-            <Button type="submit" variant="outline" disabled={isLoading || recipientType === 'group' || !selectedTenantId}>
+            <Button type="submit" variant="outline" disabled={isLoading || isSending || recipientType === 'group' || !selectedTenantId}>
               {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
               Generate with AI
             </Button>
             <Button onClick={handleSend} disabled={isSendDisabled}>
-              <Send className="mr-2 h-4 w-4" />
+              {isSending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
               Send Message
             </Button>
           </CardFooter>
