@@ -2,7 +2,6 @@
 'use client';
 
 import { useTheme } from '@/components/providers/app-providers';
-import { useTutorial } from '@/components/tutorial/tutorial-provider';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -11,7 +10,14 @@ import { useToast } from '@/hooks/use-toast';
 
 function SettingsPage({ title }: { title?: string }) {
   const { theme, setTheme } = useTheme();
-  const { startTutorial } = useTutorial();
+  const { toast } = useToast();
+
+  const handleReplayTutorial = () => {
+    toast({
+      title: "Feature coming soon!",
+      description: "The tutorial feature is not yet implemented.",
+    })
+  }
 
   return (
     <div className="max-w-2xl mx-auto grid gap-6">
@@ -62,7 +68,7 @@ function SettingsPage({ title }: { title?: string }) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-            <Button onClick={startTutorial}>Replay Tutorial</Button>
+            <Button onClick={handleReplayTutorial}>Replay Tutorial</Button>
         </CardContent>
       </Card>
 
