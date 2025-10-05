@@ -169,54 +169,37 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
     }
 
     try {
-      let messagesSentCount = 0;
-      // Handle bulk sending differently from single sends
-      if (recipientType === 'group') {
-        const phoneNumbers = recipients.map(r => r.phone);
-        // NOTE: Africa's talking doesn't support personalizing bulk messages in one go.
-        // We have to send them one by one if we want personalization.
-        for (const tenant of recipients) {
-            const personalizedMessage = replacePlaceholders(message, tenant);
-            const res = await sendSms([tenant.phone], personalizedMessage);
-            if (res.success) {
-                messagesSentCount++;
-                addMessageLog({
-                    id: `msg_${Date.now()}_${tenant.id}`,
-                    tenantId: tenant.id,
-                    tenantName: tenant.name,
-                    message: personalizedMessage,
-                    date: new Date().toISOString(),
-                    method: 'SMS',
-                });
-            } else {
-                 console.error(`Failed to send SMS to ${tenant.name}: ${res.message}`);
-            }
-        }
-      } else { // Individual sending
-        const personalizedMessage = replacePlaceholders(message, selectedTenant);
-        const res = await sendSms([selectedTenant!.phone], personalizedMessage);
-        if (res.success) {
-            messagesSentCount = 1;
+      const phoneNumbers = recipients.map(r => r.phone);
+      const messageToSend = recipientType === 'individual' && selectedTenant
+        ? replacePlaceholders(message, selectedTenant)
+        : message;
+
+      const res = await sendSms(phoneNumbers, messageToSend);
+
+      if (res.success) {
+        recipients.forEach(tenant => {
+            const personalizedMessage = recipientType === 'individual' 
+                ? messageToSend
+                : message; // For bulk, log the generic message
+
             addMessageLog({
-                id: `msg_${Date.now()}_${selectedTenant!.id}`,
-                tenantId: selectedTenant!.id,
-                tenantName: selectedTenant!.name,
+                id: `msg_${Date.now()}_${tenant.id}`,
+                tenantId: tenant.id,
+                tenantName: tenant.name,
                 message: personalizedMessage,
                 date: new Date().toISOString(),
                 method: 'SMS',
             });
-        }
-      }
+        });
 
-      if(messagesSentCount > 0) {
         toast({
             title: "Messages Sent!",
-            description: `Your message has been sent to ${messagesSentCount} tenant(s).`
+            description: `Your message has been sent to ${recipients.length} tenant(s).`
         });
         setMessage('');
         setResult(null);
       } else {
-        throw new Error("SMS sending failed for all recipients.");
+        throw new Error(res.message || "SMS sending failed for all recipients.");
       }
 
     } catch (error: any) {
@@ -345,24 +328,30 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
                         <TabsTrigger value="preview" disabled={recipientType !== 'individual' || !selectedTenant}><Eye className='mr-2' /> Preview</TabsTrigger>
                     </TabsList>
                     <TabsContent value="write" className='mt-4'>
-                        <div className="flex flex-wrap gap-2 mb-2">
-                            {tags.map(tag => (
-                                <Badge 
-                                    key={tag}
-                                    variant="outline"
-                                    className="cursor-pointer hover:bg-accent"
-                                    onClick={() => handleTagClick(tag)}
-                                >
-                                    {tag.replace(/_/g, ' ')}
-                                </Badge>
-                            ))}
-                        </div>
+                        {recipientType === 'individual' && (
+                            <div className="flex flex-wrap gap-2 mb-2">
+                                {tags.map(tag => (
+                                    <Badge 
+                                        key={tag}
+                                        variant="outline"
+                                        className="cursor-pointer hover:bg-accent"
+                                        onClick={() => handleTagClick(tag)}
+                                    >
+                                        {tag.replace(/_/g, ' ')}
+                                    </Badge>
+                                ))}
+                            </div>
+                        )}
                         <Textarea 
                             id="message" 
                             value={message} 
                             onChange={(e) => setMessage(e.target.value)} 
                             rows={6}
-                            placeholder="Type your message here or generate one with AI. Use tags like {{name}}."
+                            placeholder={
+                                recipientType === 'individual'
+                                  ? "Type your message here or generate one with AI. Use tags like {{name}}."
+                                  : "Type your bulk message here. Personalization tags are not available for bulk sends."
+                            }
                         />
                         <p className="text-xs text-muted-foreground mt-2">
                             {message.length} chars ({Math.ceil(message.length / 160)} SMS)

@@ -14,7 +14,7 @@ const africastalking = AfricasTalking({
 
 const sms = africastalking.SMS;
 
-export async function sendSms(to: string[], message: string): Promise<{ success: boolean; message: string; response?: any }> {
+export async function sendSms(to: string | string[], message: string): Promise<{ success: boolean; message: string; response?: any }> {
   if (!process.env.AFRICASTALKING_API_KEY || !process.env.AFRICASTALKING_USERNAME) {
     return { success: false, message: "Africa's Talking credentials are not configured on the server." };
   }
