@@ -8,12 +8,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useSearchParams } from 'next/navigation';
-import { Loader2, Send, Wand2, Eye, Pencil } from 'lucide-react';
+import { Loader2, Send, Wand2, Eye, Pencil, Users, ChevronDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
@@ -26,6 +26,10 @@ import { useProperties } from '../properties/property-provider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { MessageTemplates } from './message-templates';
 import { sendSms } from '@/app/actions/send-sms';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
+import { ScrollArea } from '../ui/scroll-area';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import Image from 'next/image';
 
 const formSchema = z.object({
   tenantId: z.string().optional(),
@@ -83,9 +87,25 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
   const recipientType = watch('recipientType');
   const groupId = watch('groupId');
   
-  // For individual or preview
   const selectedTenant = tenants.find((t) => t.id === selectedTenantId);
-  const previewTenant = recipientType === 'individual' ? selectedTenant : (tenants.length > 0 ? tenants[0] : undefined);
+
+  const bulkRecipients = useMemo(() => {
+    if (recipientType !== 'group' || !groupId) return [];
+    
+    if (groupId === 'all') return tenants;
+    if (groupId === 'arrears') return tenants.filter(t => t.rentStatus === 'Overdue');
+    if (groupId === 'pending') return tenants.filter(t => t.rentStatus === 'Pending');
+    if (groupId.startsWith('prop-')) {
+      const propId = groupId.replace('prop-', '');
+      const prop = properties.find(p => p.id === propId);
+      if (prop) return tenants.filter(t => t.property === prop.name);
+    }
+    return [];
+  }, [recipientType, groupId, tenants, properties]);
+
+  const previewTenant = recipientType === 'individual' 
+    ? selectedTenant 
+    : (bulkRecipients.length > 0 ? bulkRecipients[0] : undefined);
 
 
   const bulkGroups = [
@@ -147,19 +167,7 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
     if (recipientType === 'individual' && selectedTenant) {
       recipients.push(selectedTenant);
     } else if (recipientType === 'group' && groupId) {
-      if (groupId === 'all') {
-        recipients = tenants;
-      } else if (groupId === 'arrears') {
-        recipients = tenants.filter(t => t.rentStatus === 'Overdue');
-      } else if (groupId === 'pending') {
-        recipients = tenants.filter(t => t.rentStatus === 'Pending');
-      } else if (groupId.startsWith('prop-')) {
-        const propId = groupId.replace('prop-', '');
-        const prop = properties.find(p => p.id === propId);
-        if (prop) {
-          recipients = tenants.filter(t => t.property === prop.name);
-        }
-      }
+      recipients = bulkRecipients;
     }
     
     if(recipients.length === 0) {
@@ -296,30 +304,63 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
                 {errors.tenantId && <p className="text-sm text-destructive">{errors.tenantId.message}</p>}
               </div>
             ) : (
-                <div className="space-y-2">
-                    <Label htmlFor="groupId">Select Group</Label>
-                    <Controller
-                        name="groupId"
-                        control={control}
-                        render={({ field }) => (
-                        <Select 
-                            onValueChange={field.onChange} 
-                            defaultValue={field.value}
-                            value={field.value}
-                        >
-                            <SelectTrigger id="groupId">
-                                <SelectValue placeholder="Select a bulk group" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {bulkGroups.map((group) => (
-                                    <SelectItem key={group.id} value={group.id}>
-                                        {group.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        )}
-                    />
+                <div className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="groupId">Select Group</Label>
+                        <Controller
+                            name="groupId"
+                            control={control}
+                            render={({ field }) => (
+                            <Select 
+                                onValueChange={field.onChange} 
+                                defaultValue={field.value}
+                                value={field.value}
+                            >
+                                <SelectTrigger id="groupId">
+                                    <SelectValue placeholder="Select a bulk group" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {bulkGroups.map((group) => (
+                                        <SelectItem key={group.id} value={group.id}>
+                                            {group.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            )}
+                        />
+                    </div>
+                    {bulkRecipients.length > 0 && (
+                        <Collapsible className='-mx-4'>
+                            <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md bg-muted/50 px-4 py-2 text-sm font-medium hover:bg-muted">
+                                <div className="flex items-center gap-2">
+                                    <Users className="h-4 w-4" />
+                                    <span>{bulkRecipients.length} Recipient{bulkRecipients.length > 1 ? 's' : ''} Selected</span>
+                                </div>
+                                <ChevronDown className="h-4 w-4 transition-transform data-[state=open]:rotate-180" />
+                            </CollapsibleTrigger>
+                            <CollapsibleContent>
+                                <ScrollArea className="h-48 rounded-md border mt-2">
+                                <div className="p-2 space-y-1">
+                                    {bulkRecipients.map(tenant => (
+                                    <div key={tenant.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-muted/50">
+                                        <Avatar className="h-8 w-8">
+                                            <AvatarImage asChild src={tenant.avatarUrl}>
+                                                <Image src={tenant.avatarUrl} alt={tenant.name} width={32} height={32} />
+                                            </AvatarImage>
+                                            <AvatarFallback>{tenant.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                        </Avatar>
+                                        <div className="flex-1">
+                                            <p className="text-sm font-medium">{tenant.name}</p>
+                                            <p className="text-xs text-muted-foreground">{tenant.phone}</p>
+                                        </div>
+                                    </div>
+                                    ))}
+                                </div>
+                                </ScrollArea>
+                            </CollapsibleContent>
+                        </Collapsible>
+                    )}
                 </div>
             )}
 
@@ -397,3 +438,5 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
     </Card>
   );
 }
+
+    
