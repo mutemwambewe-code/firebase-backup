@@ -8,6 +8,8 @@ import { TenantProvider } from '@/components/tenants/tenant-provider';
 import { PropertyProvider } from '@/components/properties/property-provider';
 import { MessageLogProvider } from '@/components/communication/message-log-provider';
 import { TemplateProvider } from '@/components/communication/template-provider';
+import { TutorialProvider } from '@/components/tutorial/tutorial-provider';
+import { IntroTutorial } from '@/components/tutorial/intro-tutorial';
 
 export const metadata: Metadata = {
   title: 'PropBot Zambia',
@@ -32,7 +34,10 @@ export default function RootLayout({
             <TenantProvider>
               <TemplateProvider>
                 <MessageLogProvider>
+                  <TutorialProvider>
                     <AppLayout>{children}</AppLayout>
+                    <IntroTutorial />
+                  </TutorialProvider>
                 </MessageLogProvider>
               </TemplateProvider>
             </TenantProvider>

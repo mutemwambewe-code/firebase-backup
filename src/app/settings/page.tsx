@@ -2,6 +2,7 @@
 'use client';
 
 import { useTheme } from '@/components/providers/app-providers';
+import { useTutorial } from '@/components/tutorial/tutorial-provider';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -10,23 +11,14 @@ import { useToast } from '@/hooks/use-toast';
 
 function SettingsPage({ title }: { title?: string }) {
   const { theme, setTheme } = useTheme();
-  const { toast } = useToast();
-
-  const handleTutorialReplay = () => {
-    toast({
-        title: "Tutorial coming soon!",
-        description: "The interactive walkthrough will be available in a future update.",
-    })
-  }
+  const { startTutorial } = useTutorial();
 
   return (
     <div className="max-w-2xl mx-auto grid gap-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
-        <p className="text-muted-foreground">
-          Manage your account settings, preferences, and more.
-        </p>
-      </div>
+      <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
+      <p className="text-muted-foreground -mt-4">
+        Manage your account settings, preferences, and more.
+      </p>
 
       <Card>
         <CardHeader>
@@ -70,7 +62,7 @@ function SettingsPage({ title }: { title?: string }) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-            <Button onClick={handleTutorialReplay}>Replay Tutorial</Button>
+            <Button onClick={startTutorial}>Replay Tutorial</Button>
         </CardContent>
       </Card>
 

@@ -41,6 +41,42 @@
       "description": "Avatar for the logged-in user",
       "imageUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHx1c2VyJTIwYXZhdGFyfGVufDB8fHx8MTc1OTIzODE1Nnww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "user avatar"
+    },
+    {
+      "id": "step-1",
+      "description": "Welcome illustration for tutorial",
+      "imageUrl": "https://images.unsplash.com/photo-1708099332649-6eae8e953b3d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHx3ZWxjb21lJTIwaWxsdXN0cmF0aW9ufGVufDB8fHx8MTc1OTY3MTUxMHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "welcome illustration"
+    },
+    {
+      "id": "step-2",
+      "description": "Dashboard screenshot for tutorial",
+      "imageUrl": "https://images.unsplash.com/photo-1704964971025-e3ce2b8fdc91?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8ZGFzaGJvYXJkJTIwc2NyZWVuc2hvdHxlbnwwfHx8fDE3NTk2NzEzOTV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dashboard screenshot"
+    },
+    {
+      "id": "step-3",
+      "description": "Tenant list screenshot for tutorial",
+      "imageUrl": "https://images.unsplash.com/photo-1685879682384-e61e633f5d5e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHx0ZW5hbnQlMjBsaXN0fGVufDB8fHx8MTc1OTY3MTUxMHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "tenant list"
+    },
+    {
+      "id": "step-4",
+      "description": "Communication page screenshot for tutorial",
+      "imageUrl": "https://images.unsplash.com/photo-1725798451557-fc60db3eb6a2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxtZXNzYWdpbmclMjBzY3JlZW5zaG90fGVufDB8fHx8MTc1OTY3MTUxMHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "messaging screenshot"
+    },
+    {
+      "id": "step-5",
+      "description": "Reports page screenshot for tutorial",
+      "imageUrl": "https://images.unsplash.com/photo-1621863367744-7363895606b9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxyZXBvcnRzJTIwc2NyZWVuc2hvdHxlbnwwfHx8fDE3NTk2NzE1MTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "reports screenshot"
+    },
+    {
+      "id": "step-6",
+      "description": "Celebration illustration for tutorial completion",
+      "imageUrl": "https://images.unsplash.com/photo-1671794610743-4a9676a40f72?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxjZWxlYnJhdGlvbiUyMGlsbHVzdHJhdGlvbnxlbnwwfHx8fDE3NTk2NzE1MTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "celebration illustration"
     }
   ]
 }
