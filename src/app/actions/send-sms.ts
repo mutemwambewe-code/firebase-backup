@@ -23,7 +23,9 @@ export async function sendSms(to: string | string[], message: string): Promise<{
     const response = await sms.send({
       to,
       message,
-      // from: 'YOUR_SENDER_ID' // Optional: Specify your Sender ID
+      // A Sender ID is required for messages to be delivered in production.
+      // It can be a shortcode or an alphanumeric ID that you have registered with Africa's Talking.
+      from: process.env.AFRICASTALKING_SENDER_ID
     });
     console.log('SMS sent successfully:', response);
     return { success: true, message: 'SMS sent successfully!', response };
