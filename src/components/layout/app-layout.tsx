@@ -14,6 +14,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const mainRef = useRef<HTMLElement>(null);
   const [showTitle, setShowTitle] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   let pageTitle = '';
   // Extract title from children's props
@@ -34,6 +35,13 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       mainEl?.removeEventListener('scroll', handleScroll);
     };
   }, []);
+
+  // Close mobile menu on navigation
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      setMobileMenuOpen(false);
+    }
+  }, [pathname]);
 
   return (
     <div className="flex min-h-screen w-full">
@@ -91,7 +99,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
       <div className="flex flex-1 flex-col">
-        <Header showTitle={showTitle} pageTitle={pageTitle} />
+        <Header 
+          showTitle={showTitle} 
+          pageTitle={pageTitle}
+          mobileMenuOpen={mobileMenuOpen}
+          setMobileMenuOpen={setMobileMenuOpen}
+        />
         <main ref={mainRef} className="flex-1 overflow-auto p-4 sm:p-6">{children}</main>
       </div>
     </div>

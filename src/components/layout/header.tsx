@@ -23,16 +23,18 @@ import { cn } from '@/lib/utils';
 interface HeaderProps {
   showTitle: boolean;
   pageTitle: string;
+  mobileMenuOpen: boolean;
+  setMobileMenuOpen: (open: boolean) => void;
 }
 
-export function Header({ showTitle, pageTitle }: HeaderProps) {
+export function Header({ showTitle, pageTitle, mobileMenuOpen, setMobileMenuOpen }: HeaderProps) {
   const { theme, setTheme } = useTheme();
   const userAvatar = PlaceHolderImages.find(img => img.id === 'user-avatar');
   const pathname = usePathname();
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
-      <Sheet>
+      <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
         <SheetTrigger asChild>
           <Button size="icon" variant="outline" className="sm:hidden">
             <PanelLeft className="h-5 w-5" />
