@@ -23,7 +23,7 @@ const statusStyles = {
   Overdue: 'bg-destructive/20 text-destructive border-destructive/30',
 };
 
-export default function TenantDetailPage() {
+function TenantDetailPage({ title }: { title?: string }) {
   const params = useParams();
   const { tenants } = useTenants();
   const { toast } = useToast();
@@ -60,7 +60,13 @@ export default function TenantDetailPage() {
 
   return (
     <div className="flex flex-col gap-6 max-w-5xl mx-auto">
-       <div className='flex justify-start'>
+       <div className='flex justify-start items-start gap-4 flex-col sm:flex-row sm:items-center'>
+            <div className='flex-1'>
+                <h1 className="text-2xl font-bold tracking-tight">{tenant.name}</h1>
+                <p className="text-muted-foreground">
+                    Tenant details and payment history.
+                </p>
+            </div>
             <Link href="/tenants">
                 <Button variant="outline">
                     <ArrowLeft className="mr-2 h-4 w-4" />
@@ -183,3 +189,6 @@ export default function TenantDetailPage() {
     </div>
   );
 }
+
+TenantDetailPage.title = 'Tenant Details';
+export default TenantDetailPage;

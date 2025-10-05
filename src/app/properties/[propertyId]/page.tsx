@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Image from 'next/image';
-import { ArrowLeft, Building, MapPin, Users, Tag } from 'lucide-react';
+import { ArrowLeft, Building, MapPin, Users, Tag, Edit } from 'lucide-react';
 import Link from 'next/link';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
@@ -23,7 +23,7 @@ const statusStyles = {
   Overdue: 'bg-destructive/20 text-destructive border-destructive/30',
 };
 
-export default function PropertyDetailPage() {
+function PropertyDetailPage({ title }: { title?: string }) {
   const params = useParams();
   const router = useRouter();
   const { tenants } = useTenants();
@@ -60,23 +60,13 @@ export default function PropertyDetailPage() {
 
   return (
     <div className="flex flex-col gap-6 max-w-6xl mx-auto">
-       <div className='flex justify-between items-center'>
-            <Link href="/properties">
-                <Button variant="outline">
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back to Properties
-                </Button>
-            </Link>
-            <EditProperty property={property} />
-        </div>
-        
-        <Card>
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-3xl">
-                    <Building className="h-8 w-8" />
+       <div className='flex justify-between items-start flex-col sm:flex-row sm:items-center gap-4'>
+            <div className='flex-1'>
+                <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+                    <Building />
                     {property.name}
-                </CardTitle>
-                <div className="flex items-center gap-4 text-muted-foreground">
+                </h1>
+                <div className="flex items-center gap-4 text-muted-foreground mt-1">
                     <div className="flex items-center gap-2">
                         <MapPin className="h-4 w-4" />
                         {property.location}
@@ -86,6 +76,26 @@ export default function PropertyDetailPage() {
                         {property.type}
                     </div>
                 </div>
+            </div>
+            <div className='flex items-center gap-2'>
+                <Link href="/properties">
+                    <Button variant="outline">
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Back
+                    </Button>
+                </Link>
+                <EditProperty property={property}>
+                    <Button>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Edit Property
+                    </Button>
+                </EditProperty>
+            </div>
+        </div>
+        
+        <Card>
+            <CardHeader>
+                <CardTitle>Property Overview</CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="flex items-center gap-4 p-4 border rounded-lg">
@@ -166,3 +176,6 @@ export default function PropertyDetailPage() {
     </div>
   );
 }
+
+PropertyDetailPage.title = "Property Details";
+export default PropertyDetailPage;

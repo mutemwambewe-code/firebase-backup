@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useTheme } from '@/components/providers/app-providers';
@@ -7,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 
-export default function SettingsPage() {
+function SettingsPage({ title }: { title?: string }) {
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
 
@@ -76,3 +77,6 @@ export default function SettingsPage() {
     </div>
   );
 }
+
+SettingsPage.title = 'Settings';
+export default SettingsPage;

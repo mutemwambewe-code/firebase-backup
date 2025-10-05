@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -19,7 +20,12 @@ import { navLinks, settingsLink } from './nav-links';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
 
-export function Header() {
+interface HeaderProps {
+  showTitle: boolean;
+  pageTitle: string;
+}
+
+export function Header({ showTitle, pageTitle }: HeaderProps) {
   const { theme, setTheme } = useTheme();
   const userAvatar = PlaceHolderImages.find(img => img.id === 'user-avatar');
   const pathname = usePathname();
@@ -74,7 +80,12 @@ export function Header() {
       </Sheet>
       
       <div className="flex-1">
-        <h1 className="font-semibold text-lg hidden sm:block">PropBot</h1>
+        <div className={cn(
+            "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transform transition-all duration-300",
+            showTitle ? "opacity-100" : "opacity-0 -translate-y-6"
+          )}>
+          <h1 className="font-semibold text-lg">{pageTitle}</h1>
+        </div>
       </div>
 
       <DropdownMenu>

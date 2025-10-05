@@ -1,6 +1,7 @@
+
 import { TenantList } from "@/components/tenants/tenant-list";
 
-export default function TenantsPage() {
+export default function TenantsPage({ title }: { title?: string }) {
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -13,3 +14,5 @@ export default function TenantsPage() {
     </div>
   );
 }
+
+TenantsPage.title = "Tenant Management";

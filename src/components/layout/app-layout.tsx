@@ -1,6 +1,7 @@
+
 'use client';
 
-import React from 'react';
+import React, { useState, useRef, useEffect, Children } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Header } from './header';
@@ -11,6 +12,28 @@ import { Building } from 'lucide-react';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const mainRef = useRef<HTMLElement>(null);
+  const [showTitle, setShowTitle] = useState(false);
+
+  let pageTitle = '';
+  // Extract title from children's props
+  const child = Children.only(children) as React.ReactElement;
+  if (child && child.props.title) {
+    pageTitle = child.props.title;
+  }
+
+  useEffect(() => {
+    const mainEl = mainRef.current;
+    const handleScroll = () => {
+      if (mainEl) {
+        setShowTitle(mainEl.scrollTop > 50);
+      }
+    };
+    mainEl?.addEventListener('scroll', handleScroll);
+    return () => {
+      mainEl?.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
 
   return (
     <div className="flex min-h-screen w-full">
@@ -68,8 +91,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
       <div className="flex flex-1 flex-col">
-        <Header />
-        <main className="flex-1 overflow-auto p-4 sm:p-6">{children}</main>
+        <Header showTitle={showTitle} pageTitle={pageTitle} />
+        <main ref={mainRef} className="flex-1 overflow-auto p-4 sm:p-6">{children}</main>
       </div>
     </div>
   );

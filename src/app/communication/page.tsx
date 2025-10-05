@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { History, MessagesSquare } from "lucide-react";
 import { useState } from "react";
 
-export default function CommunicationPage() {
+function CommunicationPage({ title }: { title?: string }) {
   const [message, setMessage] = useState("");
 
   return (
@@ -40,3 +40,6 @@ export default function CommunicationPage() {
     </div>
   );
 }
+
+CommunicationPage.title = 'Messaging';
+export default CommunicationPage;

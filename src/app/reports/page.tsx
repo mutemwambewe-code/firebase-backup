@@ -28,7 +28,7 @@ import { OccupancyReport } from '@/components/reports/occupancy-report';
 import { TenantReportTable } from '@/components/reports/tenant-report-table';
 import { format } from 'date-fns';
 
-export default function ReportsPage() {
+function ReportsPage({ title }: { title?: string }) {
   const { tenants, isInitialized: tenantsInitialized } = useTenants();
   const { properties, isInitialized: propertiesInitialized } = useProperties();
 
@@ -174,3 +174,6 @@ export default function ReportsPage() {
     </div>
   );
 }
+
+ReportsPage.title = "Reports & Analytics";
+export default ReportsPage;

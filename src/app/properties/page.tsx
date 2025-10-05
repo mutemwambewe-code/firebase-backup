@@ -1,6 +1,7 @@
+
 import { PropertyList } from "@/components/properties/property-list";
 
-export default function PropertiesPage() {
+export default function PropertiesPage({ title }: { title?: string }) {
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -13,3 +14,5 @@ export default function PropertiesPage() {
     </div>
   );
 }
+
+PropertiesPage.title = "Property Management";

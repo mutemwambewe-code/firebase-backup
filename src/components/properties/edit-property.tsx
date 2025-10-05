@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -19,7 +20,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useProperties } from './property-provider';
 import { useToast } from '@/hooks/use-toast';
 import type { Property } from '@/lib/types';
-import { Edit } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 const formSchema = z.object({
@@ -33,9 +33,10 @@ type FormData = z.infer<typeof formSchema>;
 
 interface EditPropertyProps {
   property: Property;
+  children: React.ReactNode;
 }
 
-export function EditProperty({ property }: EditPropertyProps) {
+export function EditProperty({ property, children }: EditPropertyProps) {
   const [open, setOpen] = useState(false);
   const { updateProperty } = useProperties();
   const { toast } = useToast();
@@ -78,10 +79,7 @@ export function EditProperty({ property }: EditPropertyProps) {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button>
-          <Edit className="mr-2 h-4 w-4" />
-          Edit Property
-        </Button>
+        {children}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
