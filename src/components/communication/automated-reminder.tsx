@@ -82,7 +82,11 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
   const selectedTenantId = watch('tenantId');
   const recipientType = watch('recipientType');
   const groupId = watch('groupId');
+  
+  // For individual or preview
   const selectedTenant = tenants.find((t) => t.id === selectedTenantId);
+  const previewTenant = recipientType === 'individual' ? selectedTenant : (tenants.length > 0 ? tenants[0] : undefined);
+
 
   const bulkGroups = [
     { id: 'all', name: 'All Tenants' },
@@ -169,28 +173,26 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
     }
 
     try {
-      const phoneNumbers = recipients.map(r => r.phone);
-      const messageToSend = recipientType === 'individual' && selectedTenant
-        ? replacePlaceholders(message, selectedTenant)
-        : message;
-
-      const res = await sendSms(phoneNumbers, messageToSend);
-
-      if (res.success) {
-        recipients.forEach(tenant => {
-            const personalizedMessage = recipientType === 'individual' 
-                ? messageToSend
-                : message; // For bulk, log the generic message
-
-            addMessageLog({
-                id: `msg_${Date.now()}_${tenant.id}`,
-                tenantId: tenant.id,
-                tenantName: tenant.name,
-                message: personalizedMessage,
-                date: new Date().toISOString(),
-                method: 'SMS',
-            });
+        const sendPromises = recipients.map(async (tenant) => {
+            const personalizedMessage = replacePlaceholders(message, tenant);
+            const res = await sendSms([tenant.phone], personalizedMessage);
+            if (res.success) {
+                addMessageLog({
+                    id: `msg_${Date.now()}_${tenant.id}`,
+                    tenantId: tenant.id,
+                    tenantName: tenant.name,
+                    message: personalizedMessage,
+                    date: new Date().toISOString(),
+                    method: 'SMS',
+                });
+            } else {
+                // Throw an error for this specific tenant to be caught by Promise.all
+                throw new Error(`Failed to send to ${tenant.name} (${tenant.phone}): ${res.message}`);
+            }
+            return res;
         });
+
+        await Promise.all(sendPromises);
 
         toast({
             title: "Messages Sent!",
@@ -198,16 +200,13 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
         });
         setMessage('');
         setResult(null);
-      } else {
-        throw new Error(res.message || "SMS sending failed for all recipients.");
-      }
 
     } catch (error: any) {
-      console.error('Error sending message:', error);
+      console.error('Error sending message(s):', error);
       toast({
         variant: 'destructive',
         title: 'Sending Failed',
-        description: error.message || 'Could not send the message(s). Please check server logs.',
+        description: error.message || 'One or more messages could not be sent. Please check the logs.',
       });
     } finally {
         setIsSending(false);
@@ -219,6 +218,7 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
   };
 
   const isSendDisabled = !message || isSending || (recipientType === 'individual' && !selectedTenantId) || (recipientType === 'group' && !groupId);
+  const isGenerateDisabled = isLoading || isSending || recipientType === 'group' || !selectedTenantId;
 
   return (
     <Card className="mt-4 border-none shadow-none">
@@ -259,7 +259,7 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
               )}
             />
             
-            {recipientType === 'individual' && (
+            {recipientType === 'individual' ? (
               <div className="space-y-2">
                 <Label htmlFor="tenantId">Select Tenant</Label>
                 <Controller
@@ -290,9 +290,7 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
                 />
                 {errors.tenantId && <p className="text-sm text-destructive">{errors.tenantId.message}</p>}
               </div>
-            )}
-            
-            {recipientType === 'group' && (
+            ) : (
                 <div className="space-y-2">
                     <Label htmlFor="groupId">Select Group</Label>
                     <Controller
@@ -325,33 +323,27 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
                 <Tabs defaultValue="write">
                     <TabsList className='grid w-full grid-cols-2'>
                         <TabsTrigger value="write"><Pencil className='mr-2'/> Write</TabsTrigger>
-                        <TabsTrigger value="preview" disabled={recipientType !== 'individual' || !selectedTenant}><Eye className='mr-2' /> Preview</TabsTrigger>
+                        <TabsTrigger value="preview" disabled={!previewTenant}><Eye className='mr-2' /> Preview</TabsTrigger>
                     </TabsList>
                     <TabsContent value="write" className='mt-4'>
-                        {recipientType === 'individual' && (
-                            <div className="flex flex-wrap gap-2 mb-2">
-                                {tags.map(tag => (
-                                    <Badge 
-                                        key={tag}
-                                        variant="outline"
-                                        className="cursor-pointer hover:bg-accent"
-                                        onClick={() => handleTagClick(tag)}
-                                    >
-                                        {tag.replace(/_/g, ' ')}
-                                    </Badge>
-                                ))}
-                            </div>
-                        )}
+                        <div className="flex flex-wrap gap-2 mb-2">
+                            {tags.map(tag => (
+                                <Badge 
+                                    key={tag}
+                                    variant="outline"
+                                    className="cursor-pointer hover:bg-accent"
+                                    onClick={() => handleTagClick(tag)}
+                                >
+                                    {tag.replace(/_/g, ' ')}
+                                </Badge>
+                            ))}
+                        </div>
                         <Textarea 
                             id="message" 
                             value={message} 
                             onChange={(e) => setMessage(e.target.value)} 
                             rows={6}
-                            placeholder={
-                                recipientType === 'individual'
-                                  ? "Type your message here or generate one with AI. Use tags like {{name}}."
-                                  : "Type your bulk message here. Personalization tags are not available for bulk sends."
-                            }
+                            placeholder="Type your message here or generate one with AI. Use tags like {{name}}."
                         />
                         <p className="text-xs text-muted-foreground mt-2">
                             {message.length} chars ({Math.ceil(message.length / 160)} SMS)
@@ -359,10 +351,13 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
                     </TabsContent>
                     <TabsContent value="preview" className='mt-4'>
                         <div className="p-4 border rounded-md bg-muted/20 min-h-[170px] text-sm whitespace-pre-wrap">
-                            {replacePlaceholders(message, selectedTenant)}
+                            {replacePlaceholders(message, previewTenant)}
                         </div>
                          <p className="text-xs text-muted-foreground mt-2">
-                            This is a preview for {selectedTenant?.name}. Placeholders are not shown for bulk groups.
+                            {recipientType === 'group' 
+                                ? `This is a preview using a sample tenant. Each tenant in the group will receive a personalized message.`
+                                : `This is a preview for ${previewTenant?.name}.`
+                            }
                         </p>
                     </TabsContent>
                 </Tabs>
@@ -380,7 +375,7 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
 
           </CardContent>
           <CardFooter className="flex justify-between items-center border-t pt-6">
-            <Button type="submit" variant="outline" disabled={isLoading || isSending || recipientType === 'group' || !selectedTenantId}>
+            <Button type="submit" variant="outline" disabled={isGenerateDisabled}>
               {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
               Generate with AI
             </Button>
@@ -397,3 +392,5 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
     </Card>
   );
 }
+
+    
