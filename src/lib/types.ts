@@ -51,6 +51,8 @@ export type MessageLog = {
     message: string;
     date: string;
     method: 'SMS' | 'WhatsApp';
+    direction?: 'incoming' | 'outgoing'; // Add direction
+    status?: string; // For delivery reports
 }
 
 export type Template = {

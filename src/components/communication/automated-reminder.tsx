@@ -175,15 +175,20 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
     try {
         const sendPromises = recipients.map(async (tenant) => {
             const personalizedMessage = replacePlaceholders(message, tenant);
+            // The action now returns the Africa's Talking message ID
             const res = await sendSms([tenant.phone], personalizedMessage);
-            if (res.success) {
+            if (res.success && res.response?.SMSMessageData?.Recipients[0]?.messageId) {
+                const messageId = res.response.SMSMessageData.Recipients[0].messageId;
                 addMessageLog({
-                    id: `msg_${Date.now()}_${tenant.id}`,
+                    // Use the real message ID from the provider
+                    id: messageId,
                     tenantId: tenant.id,
                     tenantName: tenant.name,
                     message: personalizedMessage,
                     date: new Date().toISOString(),
                     method: 'SMS',
+                    direction: 'outgoing',
+                    status: 'Sent' // Initial status
                 });
             } else {
                 // Throw an error for this specific tenant to be caught by Promise.all
@@ -196,7 +201,7 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
 
         toast({
             title: "Messages Sent!",
-            description: `Your message has been sent to ${recipients.length} tenant(s).`
+            description: `Your message has been sent to ${recipients.length} tenant(s). Check logs for delivery status.`
         });
         setMessage('');
         setResult(null);
@@ -392,5 +397,3 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
     </Card>
   );
 }
-
-    

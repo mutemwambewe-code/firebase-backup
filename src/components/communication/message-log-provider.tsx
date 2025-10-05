@@ -7,6 +7,7 @@ import type { MessageLog } from '@/lib/types';
 type MessageLogContextType = {
   messageLogs: MessageLog[];
   addMessageLog: (message: MessageLog) => void;
+  updateMessageStatus: (messageId: string, status: string) => void;
   isInitialized: boolean;
 };
 
@@ -41,12 +42,26 @@ export function MessageLogProvider({ children }: { children: ReactNode }) {
   }, [messageLogs, isInitialized]);
 
   const addMessageLog = (message: MessageLog) => {
-    setMessageLogs((prevLogs) => [message, ...prevLogs]);
+    // Add direction if it's not set
+    const messageWithDirection = {
+      direction: 'outgoing' as const,
+      ...message,
+    };
+    setMessageLogs((prevLogs) => [messageWithDirection, ...prevLogs]);
+  };
+  
+  const updateMessageStatus = (messageId: string, status: string) => {
+    setMessageLogs((prevLogs) =>
+      prevLogs.map((log) =>
+        log.id.includes(messageId) ? { ...log, status } : log
+      )
+    );
   };
 
   const value = {
     messageLogs,
     addMessageLog,
+    updateMessageStatus,
     isInitialized
   };
 
