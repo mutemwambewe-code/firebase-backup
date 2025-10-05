@@ -68,9 +68,7 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
   const { tenants } = useTenants();
   const { properties } = useProperties();
   const { addMessageLog } = useMessageLog();
-  const [isLoading, setIsLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
-  const [result, setResult] = useState<AutomatedCommunicationOutput | null>(null);
   
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -122,42 +120,6 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
         setValue('recipientType', 'individual');
     }
   }, [searchParams, setValue]);
-
-  useEffect(() => {
-    if (result) {
-      setMessage(result.message);
-    }
-  }, [result, setMessage]);
-
-  async function onSubmit(data: FormData) {
-    if (!selectedTenant) return;
-    setIsLoading(true);
-    setResult(null);
-    setMessage('');
-
-    try {
-      const input = {
-        tenantName: selectedTenant.name,
-        rentDueDate: selectedTenant.leaseEndDate, // Using lease end date as a proxy
-        rentAmount: selectedTenant.rentAmount,
-        communicationPreferences: ['SMS', 'WhatsApp'] as ('SMS' | 'WhatsApp')[],
-        paymentHistory: selectedTenant.paymentHistorySummary,
-        currentDate: new Date().toISOString().split('T')[0],
-      };
-      const response = await automatedCommunication(input);
-      setResult(response);
-      setMessage(response.message); // Set message on generation
-    } catch (error) {
-      console.error('Error generating reminder:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to generate reminder. Please try again.',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }
 
   const handleSend = async () => {
     if (!message) return;
@@ -212,7 +174,6 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
             description: `Your message has been sent to ${recipients.length} tenant(s). Check logs for delivery status.`
         });
         setMessage('');
-        setResult(null);
 
     } catch (error: any) {
       console.error('Error sending message(s):', error);
@@ -231,12 +192,11 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
   };
 
   const isSendDisabled = !message || isSending || (recipientType === 'individual' && !selectedTenantId) || (recipientType === 'group' && !groupId);
-  const isGenerateDisabled = isLoading || isSending || recipientType === 'group' || !selectedTenantId;
 
   return (
     <Card className="mt-4 border-none shadow-none">
       <Form {...form}>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form>
             <CardHeader>
                 <CardTitle>Compose Message</CardTitle>
                 <CardDescription>Select recipients and write your message.</CardDescription>
@@ -282,7 +242,6 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
                     <Select 
                       onValueChange={(value) => {
                         field.onChange(value);
-                        setResult(null);
                         setMessage('');
                       }} 
                       defaultValue={field.value}
@@ -389,7 +348,7 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
                             value={message} 
                             onChange={(e) => setMessage(e.target.value)} 
                             rows={6}
-                            placeholder="Type your message here or generate one with AI. Use tags like {{name}}."
+                            placeholder="Type your message here. Use tags like {{name}}."
                         />
                         <p className="text-xs text-muted-foreground mt-2">
                             {message.length} chars ({Math.ceil(message.length / 160)} SMS)
@@ -408,23 +367,9 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
                     </TabsContent>
                 </Tabs>
             </div>
-            
-            {result && (
-              <Alert>
-                  <Wand2 className="h-4 w-4" />
-                  <AlertTitle>AI Suggestion</AlertTitle>
-                  <AlertDescription>
-                      Suggested time to send: <strong>{result.sendTime}</strong> via <strong>{result.communicationMethod}</strong>.
-                  </AlertDescription>
-              </Alert>
-            )}
 
           </CardContent>
-          <CardFooter className="flex justify-between items-center border-t pt-6">
-            <Button type="submit" variant="outline" disabled={isGenerateDisabled}>
-              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-              Generate with AI
-            </Button>
+          <CardFooter className="flex justify-end items-center border-t pt-6">
             <Button onClick={handleSend} disabled={isSendDisabled}>
               {isSending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
               Send Message
@@ -438,5 +383,7 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
     </Card>
   );
 }
+
+    
 
     
