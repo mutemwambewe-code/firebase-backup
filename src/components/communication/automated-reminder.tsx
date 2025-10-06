@@ -71,6 +71,7 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
   const [isSending, setIsSending] = useState(false);
   const [activeTab, setActiveTab] = useState('write');
   const messageBoxRef = useRef<HTMLDivElement>(null);
+  const [isTextareaHighlighted, setIsTextareaHighlighted] = useState(false);
   
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -198,6 +199,8 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
     setActiveTab('write');
     setTimeout(() => {
         messageBoxRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setIsTextareaHighlighted(true);
+        setTimeout(() => setIsTextareaHighlighted(false), 1500); // Highlight for 1.5s
     }, 100);
   }
 
@@ -359,6 +362,10 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
                             onChange={(e) => setMessage(e.target.value)} 
                             rows={6}
                             placeholder="Type your message here. Use tags like {{name}}."
+                            className={cn(
+                                'transition-all duration-300',
+                                isTextareaHighlighted && 'ring-2 ring-primary ring-offset-2'
+                            )}
                         />
                         <p className="text-xs text-muted-foreground mt-2">
                             {message.length} chars ({Math.ceil(message.length / 160)} SMS)
@@ -393,7 +400,5 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
     </Card>
   );
 }
-
-    
 
     
