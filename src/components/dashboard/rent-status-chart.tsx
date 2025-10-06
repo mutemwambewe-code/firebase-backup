@@ -91,7 +91,7 @@ export function RentStatusChart() {
     <Card className="shadow-none h-full cursor-pointer hover:border-primary/50 transition-colors" onClick={handleChartClick}>
       <CardHeader>
         <CardTitle>Rent Collection Trend</CardTitle>
-        <CardDescription>Last 6 months collection vs. due amount.</CardDescription>
+        <CardDescription>A comparison of rent collected versus the total rent scheduled for collection each month.</CardDescription>
       </CardHeader>
       <CardContent className='h-[300px]'>
         <ResponsiveContainer width="100%" height="100%">
@@ -120,3 +120,4 @@ export function RentStatusChart() {
     </Card>
   );
 }
+
