@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -69,6 +69,8 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
   const { properties } = useProperties();
   const { addMessageLog } = useMessageLog();
   const [isSending, setIsSending] = useState(false);
+  const [activeTab, setActiveTab] = useState('write');
+  const messageBoxRef = useRef<HTMLDivElement>(null);
   
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -190,6 +192,14 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
   const handleTagClick = (tag: string) => {
     setMessage(prev => `${prev} {{${tag}}}`);
   };
+
+  const handleTemplateSelect = (content: string) => {
+    setMessage(content);
+    setActiveTab('write');
+    setTimeout(() => {
+        messageBoxRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+  }
 
   const isSendDisabled = !message || isSending || (recipientType === 'individual' && !selectedTenantId) || (recipientType === 'group' && !groupId);
 
@@ -324,8 +334,8 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
             )}
 
 
-            <div className="space-y-2">
-                <Tabs defaultValue="write">
+            <div className="space-y-2" ref={messageBoxRef}>
+                <Tabs value={activeTab} onValueChange={setActiveTab}>
                     <TabsList className='grid w-full grid-cols-2'>
                         <TabsTrigger value="write"><Pencil className='mr-2'/> Write</TabsTrigger>
                         <TabsTrigger value="preview" disabled={!previewTenant}><Eye className='mr-2' /> Preview</TabsTrigger>
@@ -378,7 +388,7 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
         </form>
       </Form>
 
-      <MessageTemplates onTemplateSelect={setMessage} />
+      <MessageTemplates onTemplateSelect={handleTemplateSelect} />
 
     </Card>
   );
