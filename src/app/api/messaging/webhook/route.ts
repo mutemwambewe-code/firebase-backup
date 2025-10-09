@@ -81,9 +81,13 @@ export async function POST(req: NextRequest) {
       
       // Try to parse metadata to get our local ID back
       let localMessageId;
-      if (metadata && typeof metadata === 'string') {
+       if (metadata && typeof metadata === 'string') {
+          // The metadata comes as a stringified object, e.g., "{'localMessageId':'local_123'}"
+          // We need to parse it carefully.
           try {
-              const parsedMeta = JSON.parse(metadata);
+              // It's not standard JSON, so we replace single quotes with double quotes
+              const jsonString = metadata.replace(/'/g, '"');
+              const parsedMeta = JSON.parse(jsonString);
               localMessageId = parsedMeta.localMessageId;
           } catch(e) {
               console.warn('[Webhook] Could not parse metadata:', metadata);
