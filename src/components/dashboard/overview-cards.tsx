@@ -7,7 +7,7 @@ import { DollarSign, Home, Users, AlertTriangle, FileText, Clock } from 'lucide-
 import { cn } from '@/lib/utils';
 import { TrendingUp } from 'lucide-react';
 import { useTenants } from '../tenants/tenant-provider';
-import { isWithinInterval, addDays, startOfMonth, parseISO, isBefore, endOfMonth } from 'date-fns';
+import { isWithinInterval, addDays, startOfMonth, parseISO, isBefore, endOfMonth, getMonth, getYear } from 'date-fns';
 import { useProperties } from '../properties/property-provider';
 
 export function OverviewCards() {
@@ -19,18 +19,17 @@ export function OverviewCards() {
     const overdueTenants = tenants.filter(t => t.rentStatus === 'Overdue').length;
 
     const today = new Date();
-    const currentMonth = today.getMonth();
-    const currentYear = today.getFullYear();
     const next30Days = addDays(today, 30);
     const currentMonthStart = startOfMonth(today);
 
     const rentCollected = tenants
-    .flatMap(t => t.paymentHistory)
-    .filter(p => {
-        const paymentDate = new Date(p.date);
-        return paymentDate.getMonth() === currentMonth && paymentDate.getFullYear() === currentYear;
-    })
-    .reduce((sum, p) => sum + p.amount, 0);
+        .flatMap(t => t.paymentHistory)
+        .filter(p => {
+            const paymentDate = parseISO(p.date);
+            // Ensure payment is within the current calendar month and year
+            return getMonth(paymentDate) === getMonth(today) && getYear(paymentDate) === getYear(today);
+        })
+        .reduce((sum, p) => sum + p.amount, 0);
 
     const rentPending = tenants
         .filter(t => t.rentStatus === 'Pending' || t.rentStatus === 'Overdue')
