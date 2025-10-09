@@ -43,10 +43,14 @@ async function addIncomingMessageToLog(tenant: any, message: string, date: strin
     revalidatePath('/communication');
 }
 
-async function updateMessageDeliveryStatus(messageId: string, status: string) {
-    console.log(`[Webhook] Updating status for message ${messageId} to: ${status}`);
-    // In a real app, you would do something like:
-    // await db.collection('messageLogs').doc(messageId).update({ status: status });
+async function updateMessageDeliveryStatus(messageId: string, status: string, localMessageId?: string) {
+    console.log(`[Webhook] Updating status for message ${messageId} (local: ${localMessageId}) to: ${status}`);
+    
+    // In a real app, you would find the message by either the provider's messageId OR the localMessageId
+    // and then update its status.
+    // e.g. await db.collection('messageLogs').doc(localMessageId).update({ status: status, providerId: messageId });
+    
+    // We revalidate the path to signal to the frontend that data might have changed.
     revalidatePath('/communication');
 }
 
@@ -72,9 +76,21 @@ export async function POST(req: NextRequest) {
     } 
     // Check if it's a delivery report
     else if (body.id && body.status) {
-      const { id, status, failureReason } = body as { id: string; status: string; failureReason?: string };
+      const { id, status, failureReason, metadata } = body as { id: string; status: string; failureReason?: string; metadata?: string };
       const finalStatus = status === 'Failed' ? `${status}: ${failureReason}` : status;
-      await updateMessageDeliveryStatus(id, finalStatus);
+      
+      // Try to parse metadata to get our local ID back
+      let localMessageId;
+      if (metadata && typeof metadata === 'string') {
+          try {
+              const parsedMeta = JSON.parse(metadata);
+              localMessageId = parsedMeta.localMessageId;
+          } catch(e) {
+              console.warn('[Webhook] Could not parse metadata:', metadata);
+          }
+      }
+      
+      await updateMessageDeliveryStatus(id, finalStatus, localMessageId);
     } 
     // It might be an event notification for a sent message that does not have a status yet
     else if (body.id && !body.status){

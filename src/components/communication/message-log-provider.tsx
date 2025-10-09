@@ -7,7 +7,7 @@ import type { MessageLog } from '@/lib/types';
 type MessageLogContextType = {
   messageLogs: MessageLog[];
   addMessageLog: (message: MessageLog) => void;
-  updateMessageStatus: (messageId: string, status: string) => void;
+  updateMessageStatus: (messageId: string, status: string, providerId?: string) => void;
   isInitialized: boolean;
 };
 
@@ -50,11 +50,14 @@ export function MessageLogProvider({ children }: { children: ReactNode }) {
     setMessageLogs((prevLogs) => [messageWithDirection, ...prevLogs]);
   };
   
-  const updateMessageStatus = (messageId: string, status: string) => {
+  const updateMessageStatus = (localId: string, status: string, providerId?: string) => {
     setMessageLogs((prevLogs) =>
-      prevLogs.map((log) =>
-        log.id.includes(messageId) ? { ...log, status } : log
-      )
+      prevLogs.map((log) => {
+        if (log.id === localId) {
+          return { ...log, status, providerId: providerId ?? log.providerId };
+        }
+        return log;
+      })
     );
   };
 

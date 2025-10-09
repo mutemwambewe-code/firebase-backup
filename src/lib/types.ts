@@ -1,3 +1,4 @@
+
 export type Tenant = {
   id: string;
   name: string;
@@ -45,7 +46,8 @@ export type OverviewStats = {
 };
 
 export type MessageLog = {
-    id: string;
+    id: string; // This can be the local temporary ID or the final provider ID
+    providerId?: string; // The final ID from the SMS provider (e.g., Africa's Talking)
     tenantId: string;
     tenantName: string;
     message: string;

@@ -104,9 +104,12 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
     return [];
   }, [recipientType, groupId, tenants, properties]);
 
-  const previewTenant = recipientType === 'individual' 
-    ? selectedTenant 
-    : (bulkRecipients.length > 0 ? bulkRecipients[0] : undefined);
+  const previewTenant = useMemo(() => {
+    if (recipientType === 'individual') return selectedTenant;
+    if (bulkRecipients.length > 0) return bulkRecipients[0];
+    if (tenants.length > 0) return tenants[0];
+    return undefined;
+  }, [recipientType, selectedTenant, bulkRecipients, tenants]);
 
 
   const bulkGroups = [
@@ -148,25 +151,28 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
     try {
         const sendPromises = recipients.map(async (tenant) => {
             const personalizedMessage = replacePlaceholders(message, tenant);
-            // The action now returns the Africa's Talking message ID
-            const res = await sendSms([tenant.phone], personalizedMessage);
-            if (res.success && res.response?.SMSMessageData?.Recipients[0]?.messageId) {
-                const messageId = res.response.SMSMessageData.Recipients[0].messageId;
-                addMessageLog({
-                    // Use the real message ID from the provider
-                    id: messageId,
-                    tenantId: tenant.id,
-                    tenantName: tenant.name,
-                    message: personalizedMessage,
-                    date: new Date().toISOString(),
-                    method: 'SMS',
-                    direction: 'outgoing',
-                    status: 'Sent' // Initial status
-                });
-            } else {
+            
+            // Generate a unique ID for optimistic UI update
+            const localMessageId = `local_${Date.now()}_${Math.random()}`;
+
+            addMessageLog({
+                id: localMessageId, // Use local ID first
+                tenantId: tenant.id,
+                tenantName: tenant.name,
+                message: personalizedMessage,
+                date: new Date().toISOString(),
+                method: 'SMS',
+                direction: 'outgoing',
+                status: 'Sending...'
+            });
+
+            const res = await sendSms([tenant.phone], personalizedMessage, localMessageId);
+            
+            if (!res.success) {
                 // Throw an error for this specific tenant to be caught by Promise.all
                 throw new Error(`Failed to send to ${tenant.name} (${tenant.phone}): ${res.message}`);
             }
+            // The webhook will handle the status update using the messageId from the provider
             return res;
         });
 
@@ -174,7 +180,7 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
 
         toast({
             title: "Messages Sent!",
-            description: `Your message has been sent to ${recipients.length} tenant(s). Check logs for delivery status.`
+            description: `Your message has been queued for sending to ${recipients.length} tenant(s). Check logs for delivery status.`
         });
         setMessage('');
 
@@ -376,8 +382,8 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
                             {replacePlaceholders(message, previewTenant)}
                         </div>
                          <p className="text-xs text-muted-foreground mt-2">
-                            {recipientType === 'group' 
-                                ? `This is a preview using a sample tenant. Each tenant in the group will receive a personalized message.`
+                            {recipientType === 'group' && bulkRecipients.length > 0
+                                ? `This is a preview using ${bulkRecipients[0].name} as a sample. Each tenant in the group will receive a personalized message.`
                                 : `This is a preview for ${previewTenant?.name}.`
                             }
                         </p>
@@ -400,5 +406,3 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
     </Card>
   );
 }
-
-    

@@ -1,3 +1,4 @@
+
 'use server';
 
 import AfricasTalking from 'africastalking';
@@ -14,7 +15,7 @@ const africastalking = AfricasTalking({
 
 const sms = africastalking.SMS;
 
-export async function sendSms(to: string | string[], message: string): Promise<{ success: boolean; message: string; response?: any }> {
+export async function sendSms(to: string | string[], message: string, localMessageId?: string): Promise<{ success: boolean; message: string; response?: any }> {
   if (!process.env.AFRICASTALKING_API_KEY || !process.env.AFRICASTALKING_USERNAME) {
     return { success: false, message: "Africa's Talking credentials are not configured on the server." };
   }
@@ -25,7 +26,10 @@ export async function sendSms(to: string | string[], message: string): Promise<{
       message,
       // A Sender ID is required for messages to be delivered in production.
       // It can be a shortcode or an alphanumeric ID that you have registered with Africa's Talking.
-      from: process.env.AFRICASTALKING_SENDER_ID
+      from: process.env.AFRICASTALKING_SENDER_ID,
+      // Pass the local message ID to the bulk SMS metadata
+      bulkSMSMode: 1,
+      metadata: { localMessageId: localMessageId || '' }
     });
     console.log('SMS sent successfully:', response);
     return { success: true, message: 'SMS sent successfully!', response };
