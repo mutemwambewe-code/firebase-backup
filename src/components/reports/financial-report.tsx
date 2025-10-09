@@ -171,7 +171,7 @@ export function FinancialReport({ payments, tenants }: FinancialReportProps) {
               </TableHeader>
               <TableBody>
                 {paidThisMonth.length > 0 ? paidThisMonth.map(({ tenant, payment }) => (
-                  <TableRow key={tenant.id} onClick={() => handleRowClick(tenant.id)} className="cursor-pointer">
+                  <TableRow key={payment.id} onClick={() => handleRowClick(tenant.id)} className="cursor-pointer">
                     <TableCell>
                       <div className="flex items-center gap-3">
                          <Avatar className="h-9 w-9">
