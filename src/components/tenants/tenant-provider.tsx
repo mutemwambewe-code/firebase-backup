@@ -1,9 +1,10 @@
+
 'use client';
 
 import { createContext, useContext, useState, type ReactNode, useEffect } from 'react';
 import { tenants as initialTenantsData } from '@/lib/data';
 import type { Tenant, Payment } from '@/lib/types';
-import { isAfter, startOfMonth, endOfMonth, parseISO } from 'date-fns';
+import { isAfter, startOfMonth, endOfMonth, parseISO, isWithinInterval } from 'date-fns';
 
 type TenantContextType = {
   tenants: Tenant[];
@@ -19,63 +20,40 @@ const updateRentStatusForTenant = (tenant: Tenant): Tenant['rentStatus'] => {
   const today = new Date();
   const currentMonthStart = startOfMonth(today);
 
-  // Find the most recent payment
-  const mostRecentPayment = tenant.paymentHistory.length > 0 
-    ? tenant.paymentHistory.reduce((latest, current) => 
-        new Date(current.date) > new Date(latest.date) ? current : latest
-      )
-    : null;
-    
-  if (mostRecentPayment) {
-    const paymentDate = parseISO(mostRecentPayment.date);
-    const paymentMonthStart = startOfMonth(paymentDate);
+  // Calculate total payments made in the current month
+  const totalPaidThisMonth = tenant.paymentHistory
+    .filter(p => isWithinInterval(parseISO(p.date), { start: currentMonthStart, end: new Date() }))
+    .reduce((sum, p) => sum + p.amount, 0);
 
-    // If payment was made this month for at least the rent amount
-    if (paymentMonthStart.getTime() === currentMonthStart.getTime() && mostRecentPayment.amount >= tenant.rentAmount) {
-      return 'Paid';
-    }
-  }
-
-  // Check if lease has ended
-  const leaseEndDate = parseISO(tenant.leaseEndDate);
-  if (isAfter(today, leaseEndDate)) {
-     // If the most recent payment was before the current month, they might be overdue or if they never paid.
-    if (!mostRecentPayment || startOfMonth(parseISO(mostRecentPayment.date)) < currentMonthStart) {
-         const lastMonthRentDue = new Date(currentMonthStart);
-         lastMonthRentDue.setDate(0); //End of last month
-         const leaseStartDate = parseISO(tenant.leaseStartDate);
-
-         if(isAfter(lastMonthRentDue, leaseStartDate) && (!mostRecentPayment || isAfter(lastMonthRentDue, parseISO(mostRecentPayment.date)))){
-            return 'Overdue';
-         }
-    }
-    // If lease ended and they are not overdue for last month, we can consider them paid up
+  // If total paid this month meets or exceeds rent, they've paid.
+  if (totalPaidThisMonth >= tenant.rentAmount) {
     return 'Paid';
   }
-
-
-  // Now check for Overdue status
-  const lastMonthStart = new Date();
-  lastMonthStart.setMonth(lastMonthStart.getMonth() - 1);
-  const lastMonthRentDueDate = startOfMonth(lastMonthStart);
   
-  const leaseStartDate = parseISO(tenant.leaseStartDate);
-
-  // Only consider overdue if lease started before this month
-  if (isAfter(currentMonthStart, leaseStartDate)) {
-     const hasPaidForCurrentMonth = tenant.paymentHistory.some(p => {
-        const paymentDate = parseISO(p.date);
-        return startOfMonth(paymentDate).getTime() === currentMonthStart.getTime();
-      });
-
-      if(!hasPaidForCurrentMonth) {
-        // If we are past the 5th of the month and no payment, they are overdue
-        if (today.getDate() > 5) {
-             return 'Overdue';
-        }
-      }
+  const leaseEndDate = parseISO(tenant.leaseEndDate);
+  // If lease has ended, we don't need to check for overdue status for the current month.
+  // The logic to check if they were overdue for their last active month is more complex,
+  // for now, if lease is over and they haven't paid this month, it's ok.
+  if (isAfter(today, leaseEndDate)) {
+      // A simple check to see if they were overdue for their final month.
+      const finalMonthStart = startOfMonth(leaseEndDate);
+      const totalPaidFinalMonth = tenant.paymentHistory
+        .filter(p => isWithinInterval(parseISO(p.date), { start: finalMonthStart, end: leaseEndDate }))
+        .reduce((sum, p) => sum + p.amount, 0);
+      
+      if(totalPaidFinalMonth < tenant.rentAmount) return 'Overdue';
+      
+      return 'Paid';
   }
 
+  const leaseStartDate = parseISO(tenant.leaseStartDate);
+  // Only consider overdue if lease started before this month or this month but before the 5th
+  if (isAfter(currentMonthStart, leaseStartDate) || (isWithinInterval(leaseStartDate, {start: currentMonthStart, end: today}) && leaseStartDate.getDate() <= 5) ) {
+      // If we are past the 5th of the month and they haven't paid enough
+      if (today.getDate() > 5) {
+           return 'Overdue';
+      }
+  }
 
   return 'Pending';
 };
@@ -126,14 +104,15 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   };
   
   const updateTenant = (updatedTenant: Tenant) => {
-    const newTenantWithStatus = {
+    // When a tenant is updated, their status should also be recalculated
+    const tenantWithRecalculatedStatus = {
         ...updatedTenant,
         rentStatus: updateRentStatusForTenant(updatedTenant)
-    }
+    };
 
     setTenants((prevTenants) => 
         prevTenants.map((tenant) => 
-            tenant.id === newTenantWithStatus.id ? newTenantWithStatus : tenant
+            tenant.id === tenantWithRecalculatedStatus.id ? tenantWithRecalculatedStatus : tenant
         )
     );
   };

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -21,6 +22,8 @@ import { useTenants } from './tenant-provider';
 import { useToast } from '@/hooks/use-toast';
 import type { Tenant, Payment } from '@/lib/types';
 import { format } from 'date-fns';
+import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import { Info } from 'lucide-react';
 
 const formSchema = z.object({
   amount: z.coerce.number().min(1, 'Payment amount must be positive.'),
@@ -73,6 +76,8 @@ export function LogPayment({ tenant, children }: LogPaymentProps) {
     setOpen(false);
   }
 
+  const isAlreadyPaid = tenant.rentStatus === 'Paid';
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
@@ -83,6 +88,15 @@ export function LogPayment({ tenant, children }: LogPaymentProps) {
             Record a new rent payment for this tenant. Rent amount: ZMW {tenant.rentAmount.toLocaleString()}
           </DialogDescription>
         </DialogHeader>
+        {isAlreadyPaid && (
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertTitle>Already Paid</AlertTitle>
+            <AlertDescription>
+              This tenant has already paid their rent for the current month. Logging another payment is not recommended unless it's for a different purpose.
+            </AlertDescription>
+          </Alert>
+        )}
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
             <FormField

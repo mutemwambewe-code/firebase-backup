@@ -88,27 +88,26 @@ export function FinancialReport({ payments, tenants }: FinancialReportProps) {
   const { paidThisMonth, unpaidThisMonth } = useMemo(() => {
     const currentMonthStart = startOfMonth(new Date());
     
-    const paidTenantIds = new Set<string>();
-    const paidThisMonth: { tenant: Tenant, payment: Payment }[] = [];
+    const paidTenantsInfo: { tenant: Tenant, payment: Payment }[] = [];
+    const unpaidTenants: Tenant[] = [];
 
-    payments.forEach(p => {
-        const paymentDate = new Date(p.date);
-        if (isWithinInterval(paymentDate, { start: currentMonthStart, end: new Date() })) {
-            const tenant = tenants.find(t => t.paymentHistory.some(ph => ph.id === p.id));
-            if (tenant) {
-                paidTenantIds.add(tenant.id);
-                paidThisMonth.push({ tenant, payment: p });
+    tenants.forEach(tenant => {
+        const paymentsThisMonth = tenant.paymentHistory.filter(p => 
+            isWithinInterval(new Date(p.date), { start: currentMonthStart, end: new Date() })
+        );
+
+        if (tenant.rentStatus === 'Paid') {
+            const lastPayment = paymentsThisMonth.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+            if(lastPayment) {
+                paidTenantsInfo.push({ tenant, payment: lastPayment });
             }
+        } else if (new Date(tenant.leaseEndDate) >= currentMonthStart) {
+            unpaidTenants.push(tenant);
         }
     });
 
-    const unpaidThisMonth = tenants.filter(t => {
-      const isLeaseActive = new Date(t.leaseEndDate) >= currentMonthStart;
-      return isLeaseActive && !paidTenantIds.has(t.id);
-    });
-
-    return { paidThisMonth, unpaidThisMonth };
-  }, [payments, tenants]);
+    return { paidThisMonth: paidTenantsInfo, unpaidThisMonth: unpaidTenants };
+  }, [tenants]);
 
   const handleRowClick = (tenantId: string) => {
     router.push(`/tenants/${tenantId}`);
@@ -157,7 +156,7 @@ export function FinancialReport({ payments, tenants }: FinancialReportProps) {
        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Paid This Month ({paidThisMonth.length})</CardTitle>
+            <CardTitle>Paid This Month</CardTitle>
             <CardDescription>Tenants who have paid rent in {format(new Date(), 'MMMM yyyy')}.</CardDescription>
           </CardHeader>
           <CardContent>
@@ -198,7 +197,7 @@ export function FinancialReport({ payments, tenants }: FinancialReportProps) {
         
         <Card>
           <CardHeader>
-            <CardTitle>Unpaid This Month ({unpaidThisMonth.length})</CardTitle>
+            <CardTitle>Unpaid This Month</CardTitle>
             <CardDescription>Active tenants who have not yet paid for {format(new Date(), 'MMMM yyyy')}.</CardDescription>
           </CardHeader>
           <CardContent>
