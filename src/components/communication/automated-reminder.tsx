@@ -1,4 +1,3 @@
-
 'use client';
 
 import { automatedCommunication, type AutomatedCommunicationOutput } from '@/ai/flows/automated-communication';
@@ -152,11 +151,10 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
         const sendPromises = recipients.map(async (tenant) => {
             const personalizedMessage = replacePlaceholders(message, tenant);
             
-            // Generate a unique ID for optimistic UI update
-            const localMessageId = `local_${Date.now()}_${Math.random()}`;
+            const localMessageId = `local_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
             addMessageLog({
-                id: localMessageId, // Use local ID first
+                id: localMessageId,
                 tenantId: tenant.id,
                 tenantName: tenant.name,
                 message: personalizedMessage,
@@ -169,10 +167,8 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
             const res = await sendSms([tenant.phone], personalizedMessage, localMessageId);
             
             if (!res.success) {
-                // Throw an error for this specific tenant to be caught by Promise.all
                 throw new Error(`Failed to send to ${tenant.name} (${tenant.phone}): ${res.message}`);
             }
-            // The webhook will handle the status update using the messageId from the provider
             return res;
         });
 

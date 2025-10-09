@@ -1,4 +1,3 @@
-
 'use client';
 
 import { createContext, useContext, useState, type ReactNode, useEffect } from 'react';
@@ -7,7 +6,7 @@ import type { MessageLog } from '@/lib/types';
 type MessageLogContextType = {
   messageLogs: MessageLog[];
   addMessageLog: (message: MessageLog) => void;
-  updateMessageStatus: (messageId: string, status: string, providerId?: string) => void;
+  updateMessageStatus: (localId: string, status: string, providerId?: string) => void;
   isInitialized: boolean;
 };
 
@@ -53,7 +52,9 @@ export function MessageLogProvider({ children }: { children: ReactNode }) {
   const updateMessageStatus = (localId: string, status: string, providerId?: string) => {
     setMessageLogs((prevLogs) =>
       prevLogs.map((log) => {
+        // Find the log by its temporary local ID
         if (log.id === localId) {
+          // Update status and permanently set the provider's ID
           return { ...log, status, providerId: providerId ?? log.providerId };
         }
         return log;
