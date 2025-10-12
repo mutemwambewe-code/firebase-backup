@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo } from 'react';
@@ -174,7 +173,7 @@ export function FinancialReport({ payments, tenants }: FinancialReportProps) {
                     <TableCell>
                       <div className="flex items-center gap-3">
                          <Avatar className="h-9 w-9">
-                            <AvatarImage asChild src={tenant.avatarUrl}><Image src={tenant.avatarUrl} alt={tenant.name} width={36} height={36} /></AvatarImage>
+                            {tenant.avatarUrl && <AvatarImage asChild src={tenant.avatarUrl}><Image src={tenant.avatarUrl} alt={tenant.name} width={36} height={36} /></AvatarImage>}
                             <AvatarFallback>{tenant.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                         </Avatar>
                         <div className="font-medium">{tenant.name}</div>
@@ -215,7 +214,7 @@ export function FinancialReport({ payments, tenants }: FinancialReportProps) {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="h-9 w-9">
-                            <AvatarImage asChild src={tenant.avatarUrl}><Image src={tenant.avatarUrl} alt={tenant.name} width={36} height={36} /></AvatarImage>
+                            {tenant.avatarUrl && <AvatarImage asChild src={tenant.avatarUrl}><Image src={tenant.avatarUrl} alt={tenant.name} width={36} height={36} /></AvatarImage>}
                             <AvatarFallback>{tenant.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                         </Avatar>
                         <div>

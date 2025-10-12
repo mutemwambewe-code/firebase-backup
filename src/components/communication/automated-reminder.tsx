@@ -319,9 +319,7 @@ export function AutomatedReminder({ message, setMessage }: AutomatedReminderProp
                                     {bulkRecipients.map(tenant => (
                                     <div key={tenant.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-muted/50">
                                         <Avatar className="h-8 w-8">
-                                            <AvatarImage asChild src={tenant.avatarUrl}>
-                                                <Image src={tenant.avatarUrl} alt={tenant.name} width={32} height={32} />
-                                            </AvatarImage>
+                                            {tenant.avatarUrl && <AvatarImage asChild src={tenant.avatarUrl}><Image src={tenant.avatarUrl} alt={tenant.name} width={32} height={32} /></AvatarImage>}
                                             <AvatarFallback>{tenant.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                                         </Avatar>
                                         <div className="flex-1">

@@ -28,9 +28,11 @@ export function TenantCard({ tenant }: TenantCardProps) {
        <Link href={`/tenants/${tenant.id}`} className="flex flex-col flex-grow">
         <CardHeader className="flex flex-row items-start gap-4">
             <Avatar className="h-14 w-14">
-                <AvatarImage asChild src={tenant.avatarUrl}>
-                    <Image src={tenant.avatarUrl} alt={tenant.name} width={56} height={56} />
-                </AvatarImage>
+                {tenant.avatarUrl && (
+                    <AvatarImage asChild src={tenant.avatarUrl}>
+                        <Image src={tenant.avatarUrl} alt={tenant.name} width={56} height={56} />
+                    </AvatarImage>
+                )}
             <AvatarFallback className="text-xl">
                 {tenant.name
                 .split(' ')

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useParams } from 'next/navigation';
@@ -79,9 +78,11 @@ function TenantDetailPage({ title }: { title?: string }) {
           <Card>
             <CardHeader className="items-center text-center">
               <Avatar className="h-24 w-24 mb-2">
-                  <AvatarImage asChild src={tenant.avatarUrl}>
-                    <Image src={tenant.avatarUrl} alt={tenant.name} width={96} height={96} />
-                  </AvatarImage>
+                  {tenant.avatarUrl && (
+                    <AvatarImage asChild src={tenant.avatarUrl}>
+                        <Image src={tenant.avatarUrl} alt={tenant.name} width={96} height={96} />
+                    </AvatarImage>
+                  )}
                 <AvatarFallback className="text-3xl">
                   {tenant.name.split(' ').map((n) => n[0]).join('')}
                 </AvatarFallback>
