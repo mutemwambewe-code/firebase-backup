@@ -1,10 +1,9 @@
-
 'use client';
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
-import { PanelLeft, Settings, Sun, Moon, Building } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { PanelLeft, Settings, Sun, Moon, Building, LogOut } from 'lucide-react';
 import { useTheme } from '@/components/providers/app-providers';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,6 +18,9 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { navLinks, settingsLink } from './nav-links';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
+import { useAuth, useUser } from '@/firebase';
+import { signOut } from 'firebase/auth';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 
 interface HeaderProps {
   showTitle: boolean;
@@ -29,8 +31,16 @@ interface HeaderProps {
 
 export function Header({ showTitle, pageTitle, mobileMenuOpen, setMobileMenuOpen }: HeaderProps) {
   const { theme, setTheme } = useTheme();
+  const { user } = useUser();
+  const auth = useAuth();
+  const router = useRouter();
   const userAvatar = PlaceHolderImages.find(img => img.id === 'user-avatar');
   const pathname = usePathname();
+  
+  const handleLogout = async () => {
+    await signOut(auth);
+    router.push('/login');
+  };
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
@@ -93,7 +103,16 @@ export function Header({ showTitle, pageTitle, mobileMenuOpen, setMobileMenuOpen
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon" className="overflow-hidden rounded-full">
-            {userAvatar && <Image src={userAvatar.imageUrl} width={36} height={36} alt="User Avatar" data-ai-hint={userAvatar.imageHint} className="rounded-full" />}
+            <Avatar className="h-9 w-9">
+              {user?.photoURL ? (
+                <AvatarImage src={user.photoURL} alt={user.displayName || 'User'} />
+              ) : userAvatar ? (
+                 <AvatarImage asChild src={userAvatar.imageUrl}>
+                   <Image src={userAvatar.imageUrl} width={36} height={36} alt="User Avatar" data-ai-hint={userAvatar.imageHint} className="rounded-full" />
+                 </AvatarImage>
+              ) : null}
+              <AvatarFallback>{user?.displayName?.charAt(0) ?? user?.email?.charAt(0)}</AvatarFallback>
+            </Avatar>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
@@ -110,7 +129,9 @@ export function Header({ showTitle, pageTitle, mobileMenuOpen, setMobileMenuOpen
             <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>Logout</DropdownMenuItem>
+          <DropdownMenuItem onClick={handleLogout}>
+            <LogOut className="mr-2" /> Logout
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </header>

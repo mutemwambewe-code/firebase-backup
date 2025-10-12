@@ -1,4 +1,3 @@
-
 'use client';
 
 import { createContext, useContext, useState, type ReactNode, useEffect } from 'react';
@@ -20,18 +19,18 @@ export function TemplateProvider({ children }: { children: ReactNode }) {
 
   // Load from localStorage on mount
   useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
+    if (typeof window !== "undefined") {
+        try {
+        const storedTemplates = localStorage.getItem('templates');
+        const templatesToLoad = storedTemplates ? JSON.parse(storedTemplates) : initialTemplates;
+        setTemplates(templatesToLoad);
+        } catch (error) {
+        console.error("Failed to load templates from localStorage", error);
+        setTemplates(initialTemplates);
+        } finally {
+            setIsInitialized(true);
+        }
     }
-    try {
-      const storedTemplates = localStorage.getItem('templates');
-      const templatesToLoad = storedTemplates ? JSON.parse(storedTemplates) : initialTemplates;
-      setTemplates(templatesToLoad);
-    } catch (error) {
-      console.error("Failed to load templates from localStorage", error);
-      setTemplates(initialTemplates);
-    }
-    setIsInitialized(true);
   }, []);
 
   // Persist to localStorage whenever templates change

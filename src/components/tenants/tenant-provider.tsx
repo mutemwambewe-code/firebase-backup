@@ -1,8 +1,6 @@
-
 'use client';
 
 import { createContext, useContext, useState, type ReactNode, useEffect } from 'react';
-import { tenants as initialTenantsData } from '@/lib/data';
 import type { Tenant, Payment } from '@/lib/types';
 import { isAfter, startOfMonth, endOfMonth, parseISO, isWithinInterval } from 'date-fns';
 
@@ -65,25 +63,25 @@ export function TenantProvider({ children }: { children: ReactNode }) {
 
   // Load from localStorage on mount
   useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-    try {
-      const storedTenants = localStorage.getItem('tenants');
-      let tenantsToLoad = storedTenants ? JSON.parse(storedTenants) : initialTenantsData;
+    if (typeof window !== "undefined") {
+        try {
+        const storedTenants = localStorage.getItem('tenants');
+        const tenantsToLoad = storedTenants ? JSON.parse(storedTenants) : []; // Start with empty array
 
-      // Update statuses on initial load
-      tenantsToLoad = tenantsToLoad.map((tenant: Tenant) => ({
-        ...tenant,
-        rentStatus: updateRentStatusForTenant(tenant),
-      }));
+        // Update statuses on initial load
+        const updatedTenants = tenantsToLoad.map((tenant: Tenant) => ({
+            ...tenant,
+            rentStatus: updateRentStatusForTenant(tenant),
+        }));
 
-      setTenants(tenantsToLoad);
-    } catch (error) {
-      console.error("Failed to load tenants from localStorage", error);
-      setTenants(initialTenantsData.map(tenant => ({...tenant, rentStatus: updateRentStatusForTenant(tenant)})));
+        setTenants(updatedTenants);
+        } catch (error) {
+        console.error("Failed to load tenants from localStorage", error);
+        setTenants([]); // Start with empty array on error
+        } finally {
+            setIsInitialized(true);
+        }
     }
-    setIsInitialized(true);
   }, []);
 
   // Persist to localStorage whenever tenants change

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { createContext, useContext, useState, type ReactNode, useEffect } from 'react';
@@ -19,18 +18,18 @@ export function MessageLogProvider({ children }: { children: ReactNode }) {
 
   // Load from localStorage on mount
   useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
+    if (typeof window !== "undefined") {
+        try {
+        const storedLogs = localStorage.getItem('messageLogs');
+        const logsToLoad = storedLogs ? JSON.parse(storedLogs) : [];
+        setMessageLogs(logsToLoad);
+        } catch (error) {
+        console.error("Failed to load message logs from localStorage", error);
+        setMessageLogs([]);
+        } finally {
+            setIsInitialized(true);
+        }
     }
-    try {
-      const storedLogs = localStorage.getItem('messageLogs');
-      const logsToLoad = storedLogs ? JSON.parse(storedLogs) : [];
-      setMessageLogs(logsToLoad);
-    } catch (error) {
-      console.error("Failed to load message logs from localStorage", error);
-      setMessageLogs([]);
-    }
-    setIsInitialized(true);
   }, []);
 
   // Persist to localStorage whenever logs change

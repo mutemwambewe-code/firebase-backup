@@ -1,20 +1,30 @@
-
 'use client';
 
 import React, { useState, useRef, useEffect, Children } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Header } from './header';
 import { navLinks, settingsLink } from './nav-links';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Building } from 'lucide-react';
+import { Building, Loader2 } from 'lucide-react';
+import { useUser } from '@/firebase';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const mainRef = useRef<HTMLElement>(null);
   const [showTitle, setShowTitle] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user, isUserLoading } = useUser();
+  const router = useRouter();
+
+  const isAuthPage = pathname === '/login' || pathname === '/signup';
+
+  useEffect(() => {
+    if (!isUserLoading && !user && !isAuthPage) {
+      router.push('/login');
+    }
+  }, [isUserLoading, user, isAuthPage, router]);
 
   let pageTitle = '';
   // Extract title from children's props
@@ -42,6 +52,19 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       setMobileMenuOpen(false);
     }
   }, [pathname]);
+
+  if (isUserLoading && !isAuthPage) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+  
+  if (isAuthPage) {
+    return <>{children}</>;
+  }
+
 
   return (
     <div className="flex min-h-screen w-full">

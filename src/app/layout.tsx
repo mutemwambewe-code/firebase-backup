@@ -1,4 +1,3 @@
-
 import type { Metadata } from 'next';
 import './globals.css';
 import { AppProviders } from '@/components/providers/app-providers';
@@ -8,6 +7,7 @@ import { TenantProvider } from '@/components/tenants/tenant-provider';
 import { PropertyProvider } from '@/components/properties/property-provider';
 import { MessageLogProvider } from '@/components/communication/message-log-provider';
 import { TemplateProvider } from '@/components/communication/template-provider';
+import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
   title: 'PropBot Zambia',
@@ -28,16 +28,18 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <AppProviders>
-          <PropertyProvider>
-            <TenantProvider>
-              <TemplateProvider>
-                <MessageLogProvider>
-                    <AppLayout>{children}</AppLayout>
-                </MessageLogProvider>
-              </TemplateProvider>
-            </TenantProvider>
-          </PropertyProvider>
-          <Toaster />
+            <FirebaseClientProvider>
+                <PropertyProvider>
+                    <TenantProvider>
+                    <TemplateProvider>
+                        <MessageLogProvider>
+                            <AppLayout>{children}</AppLayout>
+                        </MessageLogProvider>
+                    </TemplateProvider>
+                    </TenantProvider>
+                </PropertyProvider>
+                <Toaster />
+            </FirebaseClientProvider>
         </AppProviders>
       </body>
     </html>
