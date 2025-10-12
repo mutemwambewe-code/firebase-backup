@@ -1,64 +1,62 @@
 'use client';
 
-import { createContext, useContext, useState, type ReactNode, useEffect } from 'react';
+import { createContext, useContext, useState, type ReactNode, useEffect, useCallback } from 'react';
 import type { Property } from '@/lib/types';
+import { useAuth, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, doc, setDoc, deleteDoc } from 'firebase/firestore';
+import { useUser } from '@/firebase';
 
 type PropertyContextType = {
   properties: Property[];
-  addProperty: (property: Property) => void;
+  addProperty: (property: Omit<Property, 'id' | 'occupied'>) => void;
   updateProperty: (property: Property) => void;
+  deleteProperty: (propertyId: string) => void;
   isInitialized: boolean;
 };
 
 const PropertyContext = createContext<PropertyContextType | undefined>(undefined);
 
 export function PropertyProvider({ children }: { children: ReactNode }) {
-  const [properties, setProperties] = useState<Property[]>([]);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const firestore = useFirestore();
+  const { user, isUserLoading } = useUser();
 
-  // Load from localStorage on mount
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-        try {
-        const storedProperties = localStorage.getItem('properties');
-        const propertiesToLoad = storedProperties ? JSON.parse(storedProperties) : [];
-        setProperties(propertiesToLoad);
-        } catch (error) {
-        console.error("Failed to load properties from localStorage", error);
-        setProperties([]);
-        } finally {
-            setIsInitialized(true);
-        }
-    }
-  }, []);
+  const propertiesCollection = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return collection(firestore, 'users', user.uid, 'properties');
+  }, [firestore, user]);
 
-  // Persist to localStorage whenever properties change
-  useEffect(() => {
-    if (isInitialized && typeof window !== "undefined") {
-      try {
-        localStorage.setItem('properties', JSON.stringify(properties));
-      } catch (error) {
-        console.error("Failed to save properties to localStorage", error);
-      }
-    }
-  }, [properties, isInitialized]);
+  const { data: properties, isLoading: isPropertiesLoading } = useCollection<Property>(propertiesCollection);
 
-  const addProperty = (property: Property) => {
-    setProperties((prevProperties) => [...prevProperties, property]);
-  };
-  
-  const updateProperty = (updatedProperty: Property) => {
-    setProperties((prevProperties) => 
-        prevProperties.map((property) => 
-            property.id === updatedProperty.id ? updatedProperty : property
-        )
-    );
-  };
+  const addProperty = useCallback(async (propertyData: Omit<Property, 'id' | 'occupied'>) => {
+    if (!propertiesCollection) return;
+    const newDocRef = doc(propertiesCollection);
+    const newProperty: Property = {
+        ...propertyData,
+        id: newDocRef.id,
+        occupied: 0,
+    };
+    await setDoc(newDocRef, newProperty);
+  }, [propertiesCollection]);
+
+  const updateProperty = useCallback(async (property: Property) => {
+    if (!propertiesCollection) return;
+    const docRef = doc(propertiesCollection, property.id);
+    await setDoc(docRef, property, { merge: true });
+  }, [propertiesCollection]);
+
+  const deleteProperty = useCallback(async (propertyId: string) => {
+    if (!propertiesCollection) return;
+    const docRef = doc(propertiesCollection, propertyId);
+    await deleteDoc(docRef);
+  }, [propertiesCollection]);
+
+  const isInitialized = !isUserLoading && !isPropertiesLoading;
 
   const value = {
-    properties,
+    properties: properties || [],
     addProperty,
     updateProperty,
+    deleteProperty,
     isInitialized
   };
 

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -64,14 +63,10 @@ export function LogPayment({ tenant, children }: LogPaymentProps) {
   }
 
   function onSubmit(values: FormData) {
-    const newPayment: Payment = {
-      ...values,
-      id: `p${Date.now()}`,
-    };
-    logPayment(tenant.id, newPayment);
+    logPayment(tenant.id, values);
     toast({
       title: 'Payment Logged!',
-      description: `Payment of ZMW ${newPayment.amount.toLocaleString()} for ${tenant.name} has been recorded.`,
+      description: `Payment of ZMW ${values.amount.toLocaleString()} for ${tenant.name} has been recorded.`,
     });
     setOpen(false);
   }

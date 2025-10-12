@@ -46,15 +46,10 @@ export function AddProperty({ children }: { children: React.ReactNode }) {
   });
 
   function onSubmit(values: FormData) {
-    const newProperty: Property = {
-      ...values,
-      id: `prop${Date.now()}`,
-      occupied: 0,
-    };
-    addProperty(newProperty);
+    addProperty(values);
     toast({
       title: 'Property Added!',
-      description: `${newProperty.name} has been added to your property list.`,
+      description: `${values.name} has been added to your property list.`,
     });
     setOpen(false);
     form.reset();

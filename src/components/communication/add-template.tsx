@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -21,7 +20,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Plus } from 'lucide-react';
 import { useTemplates } from './template-provider';
 import { Textarea } from '../ui/textarea';
-import type { Template } from '@/lib/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 const formSchema = z.object({
@@ -49,14 +47,10 @@ export function AddTemplate() {
   const categories = [...new Set(templates.map(t => t.category))];
 
   function onSubmit(values: FormData) {
-    const newTemplate: Template = {
-      ...values,
-      id: `tmpl_${Date.now()}`,
-    };
-    addTemplate(newTemplate);
+    addTemplate(values);
     toast({
       title: 'Template Added!',
-      description: `The "${newTemplate.title}" template has been saved.`,
+      description: `The "${values.title}" template has been saved.`,
     });
     setOpen(false);
     form.reset();

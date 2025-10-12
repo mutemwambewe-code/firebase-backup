@@ -1,11 +1,14 @@
 'use client';
 
-import { createContext, useContext, useState, type ReactNode, useEffect } from 'react';
+import { createContext, useContext, useState, type ReactNode, useEffect, useCallback } from 'react';
 import type { MessageLog } from '@/lib/types';
+import { useAuth, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, doc, setDoc, deleteDoc } from 'firebase/firestore';
+import { useUser } from '@/firebase';
 
 type MessageLogContextType = {
   messageLogs: MessageLog[];
-  addMessageLog: (message: MessageLog) => void;
+  addMessageLog: (message: Omit<MessageLog, 'id'> & { id?: string }) => void;
   updateMessageStatus: (localId: string, status: string, providerId?: string) => void;
   isInitialized: boolean;
 };
@@ -13,60 +16,40 @@ type MessageLogContextType = {
 const MessageLogContext = createContext<MessageLogContextType | undefined>(undefined);
 
 export function MessageLogProvider({ children }: { children: ReactNode }) {
-  const [messageLogs, setMessageLogs] = useState<MessageLog[]>([]);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const firestore = useFirestore();
+  const { user, isUserLoading } = useUser();
 
-  // Load from localStorage on mount
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-        try {
-        const storedLogs = localStorage.getItem('messageLogs');
-        const logsToLoad = storedLogs ? JSON.parse(storedLogs) : [];
-        setMessageLogs(logsToLoad);
-        } catch (error) {
-        console.error("Failed to load message logs from localStorage", error);
-        setMessageLogs([]);
-        } finally {
-            setIsInitialized(true);
-        }
-    }
-  }, []);
+  const logsCollection = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return collection(firestore, 'users', user.uid, 'messagelogs');
+  }, [firestore, user]);
 
-  // Persist to localStorage whenever logs change
-  useEffect(() => {
-    if (isInitialized && typeof window !== "undefined") {
-      try {
-        localStorage.setItem('messageLogs', JSON.stringify(messageLogs));
-      } catch (error) {
-        console.error("Failed to save message logs to localStorage", error);
-      }
-    }
-  }, [messageLogs, isInitialized]);
+  const { data: messageLogs, isLoading: isLogsLoading } = useCollection<MessageLog>(logsCollection);
 
-  const addMessageLog = (message: MessageLog) => {
-    // Add direction if it's not set
-    const messageWithDirection = {
+  const addMessageLog = useCallback(async (messageData: Omit<MessageLog, 'id'> & { id?: string }) => {
+    if (!logsCollection) return;
+    
+    const localId = messageData.id || `local_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+
+    const messageWithDirection: MessageLog = {
       direction: 'outgoing' as const,
-      ...message,
+      ...messageData,
+      id: localId,
     };
-    setMessageLogs((prevLogs) => [messageWithDirection, ...prevLogs]);
-  };
+    const docRef = doc(logsCollection, localId);
+    await setDoc(docRef, messageWithDirection);
+  }, [logsCollection]);
   
-  const updateMessageStatus = (localId: string, status: string, providerId?: string) => {
-    setMessageLogs((prevLogs) =>
-      prevLogs.map((log) => {
-        // Find the log by its temporary local ID
-        if (log.id === localId) {
-          // Update status and permanently set the provider's ID
-          return { ...log, status, providerId: providerId ?? log.providerId };
-        }
-        return log;
-      })
-    );
-  };
+  const updateMessageStatus = useCallback(async (localId: string, status: string, providerId?: string) => {
+    if (!logsCollection) return;
+    const docRef = doc(logsCollection, localId);
+    await setDoc(docRef, { status, providerId }, { merge: true });
+  }, [logsCollection]);
 
+  const isInitialized = !isUserLoading && !isLogsLoading;
+  
   const value = {
-    messageLogs,
+    messageLogs: messageLogs || [],
     addMessageLog,
     updateMessageStatus,
     isInitialized

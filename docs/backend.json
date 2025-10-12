@@ -47,6 +47,67 @@
         "createdAt",
         "updatedAt"
       ]
+    },
+    "Property": {
+      "title": "Property",
+      "description": "A property with units.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "location": { "type": "string" },
+        "units": { "type": "number" },
+        "type": { "type": "string" }
+      },
+      "required": ["name", "location", "units", "type"]
+    },
+    "Tenant": {
+      "title": "Tenant",
+      "description": "A tenant in a property.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "avatarUrl": { "type": "string" },
+        "property": { "type": "string" },
+        "unit": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "rentStatus": { "type": "string" },
+        "rentAmount": { "type": "number" },
+        "leaseStartDate": { "type": "string" },
+        "leaseEndDate": { "type": "string" }
+      },
+      "required": ["name", "property", "unit", "phone", "email", "rentAmount", "leaseStartDate", "leaseEndDate"]
+    },
+    "MessageLog": {
+        "title": "MessageLog",
+        "description": "A log of a message.",
+        "type": "object",
+        "properties": {
+            "id": { "type": "string" },
+            "providerId": { "type": "string" },
+            "tenantId": { "type": "string" },
+            "tenantName": { "type": "string" },
+            "message": { "type": "string" },
+            "date": { "type": "string" },
+            "method": { "type": "string" },
+            "direction": { "type": "string" },
+            "status": { "type": "string" }
+        },
+        "required": ["id", "tenantId", "tenantName", "message", "date", "method"]
+    },
+    "Template": {
+        "title": "Template",
+        "description": "A message template.",
+        "type": "object",
+        "properties": {
+            "id": { "type": "string" },
+            "title": { "type": "string" },
+            "content": { "type": "string" },
+            "category": { "type": "string" }
+        },
+        "required": ["id", "title", "content", "category"]
     }
   },
   "auth": {
@@ -56,64 +117,21 @@
     ]
   },
   "firestore": {
-    "structure": [
-      {
-        "path": "/users/{userId}",
-        "definition": {
-          "entityName": "User",
-          "schema": {
-            "$ref": "#/backend/entities/User"
-          },
-          "description": "Stores user profile information. All documents are owned by the user identified by {userId}.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/units/{unitId}",
-        "definition": {
-          "entityName": "unit",
-          "schema": {
-            "$ref": "#/backend/entities/User"
-          },
-          "description": "Stores units owned by user. Documents are owned by the user identified by {userId}.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user."
-            },
-            {
-              "name": "unitId",
-              "description": "The unique identifier for the unit."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/tenants/{tenantId}",
-        "definition": {
-          "entityName": "tenant",
-          "schema": {
-            "$ref": "#/backend/entities/User"
-          },
-          "description": "Stores tenants for user. Documents are owned by the user identified by {userId}.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user."
-            },
-            {
-              "name": "tenantId",
-              "description": "The unique identifier for the tenant."
-            }
-          ]
-        }
-      }
-    ],
-    "reasoning": "The Firestore structure prioritizes authorization independence and ease of maintenance. Each user's data is stored under their `userId`, ensuring clear ownership. The structure uses path-based ownership for `users/{userId}/units` and `users/{userId}/tenants`, simplifying security rules. This design avoids complex `get()` calls within security rules, promoting atomic operations and straightforward debugging. Segregation is achieved by storing user-specific data in separate collections under each user's document.  This segregation ensures that list operations can be secured by simply checking the `request.auth.uid` against the `userId` path parameter. The absence of global roles simplifies access control and debugging."
+    "/users/{userId}/properties/{propertyId}": {
+      "schema": { "$ref": "#/entities/Property" },
+      "description": "Stores properties owned by a user."
+    },
+    "/users/{userId}/tenants/{tenantId}": {
+      "schema": { "$ref": "#/entities/Tenant" },
+      "description": "Stores tenants for a user."
+    },
+    "/users/{userId}/messagelogs/{messagelogId}": {
+        "schema": { "$ref": "#/entities/MessageLog" },
+        "description": "Stores message logs for a user."
+    },
+    "/users/{userId}/templates/{templateId}": {
+        "schema": { "$ref": "#/entities/Template" },
+        "description": "Stores message templates for a user."
+    }
   }
 }

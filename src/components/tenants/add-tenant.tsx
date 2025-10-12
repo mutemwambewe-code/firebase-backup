@@ -24,8 +24,6 @@ import { format } from 'date-fns';
 import { useTenants } from './tenant-provider';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import type { Tenant } from '@/lib/types';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useProperties } from '../properties/property-provider';
 
 const formSchema = z.object({
@@ -64,20 +62,15 @@ export function AddTenant({ asChild, className }: { asChild?: boolean; className
   });
 
   function onSubmit(values: FormData) {
-    const newTenant: Tenant = {
-      ...values,
-      leaseStartDate: format(values.leaseStartDate, 'yyyy-MM-dd'),
-      leaseEndDate: format(values.leaseEndDate, 'yyyy-MM-dd'),
-      id: `t${Date.now()}`,
-      avatarUrl: '',
-      rentStatus: 'Pending',
-      paymentHistorySummary: 'New tenant.',
-      paymentHistory: [],
-    };
-    addTenant(newTenant);
+    const tenantData = {
+        ...values,
+        leaseStartDate: format(values.leaseStartDate, 'yyyy-MM-dd'),
+        leaseEndDate: format(values.leaseEndDate, 'yyyy-MM-dd'),
+    }
+    addTenant(tenantData);
     toast({
       title: 'Tenant Added!',
-      description: `${newTenant.name} has been added to your tenant list.`,
+      description: `${values.name} has been added to your tenant list.`,
     });
     setOpen(false);
     form.reset();

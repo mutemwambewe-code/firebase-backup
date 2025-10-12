@@ -1,14 +1,18 @@
 'use client';
 
-import { createContext, useContext, useState, type ReactNode, useEffect } from 'react';
+import { createContext, useContext, useState, type ReactNode, useEffect, useCallback, useMemo } from 'react';
 import type { Tenant, Payment } from '@/lib/types';
-import { isAfter, startOfMonth, endOfMonth, parseISO, isWithinInterval } from 'date-fns';
+import { isAfter, startOfMonth, parseISO, isWithinInterval } from 'date-fns';
+import { useAuth, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, doc, setDoc, deleteDoc } from 'firebase/firestore';
+import { useUser } from '@/firebase';
 
 type TenantContextType = {
   tenants: Tenant[];
-  addTenant: (tenant: Tenant) => void;
+  addTenant: (tenant: Omit<Tenant, 'id' | 'avatarUrl' | 'rentStatus' | 'paymentHistorySummary' | 'paymentHistory'>) => void;
   updateTenant: (tenant: Tenant) => void;
-  logPayment: (tenantId: string, payment: Payment) => void;
+  deleteTenant: (tenantId: string) => void;
+  logPayment: (tenantId: string, payment: Omit<Payment, 'id'>) => void;
   isInitialized: boolean;
 };
 
@@ -18,36 +22,27 @@ const updateRentStatusForTenant = (tenant: Tenant): Tenant['rentStatus'] => {
   const today = new Date();
   const currentMonthStart = startOfMonth(today);
 
-  // Calculate total payments made in the current month
-  const totalPaidThisMonth = tenant.paymentHistory
+  const totalPaidThisMonth = (tenant.paymentHistory || [])
     .filter(p => isWithinInterval(parseISO(p.date), { start: currentMonthStart, end: new Date() }))
     .reduce((sum, p) => sum + p.amount, 0);
 
-  // If total paid this month meets or exceeds rent, they've paid.
   if (totalPaidThisMonth >= tenant.rentAmount) {
     return 'Paid';
   }
   
   const leaseEndDate = parseISO(tenant.leaseEndDate);
-  // If lease has ended, we don't need to check for overdue status for the current month.
-  // The logic to check if they were overdue for their last active month is more complex,
-  // for now, if lease is over and they haven't paid this month, it's ok.
   if (isAfter(today, leaseEndDate)) {
-      // A simple check to see if they were overdue for their final month.
       const finalMonthStart = startOfMonth(leaseEndDate);
-      const totalPaidFinalMonth = tenant.paymentHistory
+      const totalPaidFinalMonth = (tenant.paymentHistory || [])
         .filter(p => isWithinInterval(parseISO(p.date), { start: finalMonthStart, end: leaseEndDate }))
         .reduce((sum, p) => sum + p.amount, 0);
       
       if(totalPaidFinalMonth < tenant.rentAmount) return 'Overdue';
-      
       return 'Paid';
   }
 
   const leaseStartDate = parseISO(tenant.leaseStartDate);
-  // Only consider overdue if lease started before this month or this month but before the 5th
   if (isAfter(currentMonthStart, leaseStartDate) || (isWithinInterval(leaseStartDate, {start: currentMonthStart, end: today}) && leaseStartDate.getDate() <= 5) ) {
-      // If we are past the 5th of the month and they haven't paid enough
       if (today.getDate() > 5) {
            return 'Overdue';
       }
@@ -58,87 +53,81 @@ const updateRentStatusForTenant = (tenant: Tenant): Tenant['rentStatus'] => {
 
 
 export function TenantProvider({ children }: { children: ReactNode }) {
-  const [tenants, setTenants] = useState<Tenant[]>([]);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const firestore = useFirestore();
+  const { user, isUserLoading } = useUser();
 
-  // Load from localStorage on mount
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-        try {
-        const storedTenants = localStorage.getItem('tenants');
-        const tenantsToLoad = storedTenants ? JSON.parse(storedTenants) : []; // Start with empty array
+  const tenantsCollection = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return collection(firestore, 'users', user.uid, 'tenants');
+  }, [firestore, user]);
 
-        // Update statuses on initial load
-        const updatedTenants = tenantsToLoad.map((tenant: Tenant) => ({
-            ...tenant,
-            rentStatus: updateRentStatusForTenant(tenant),
-        }));
+  const { data: tenantsData, isLoading: isTenantsLoading } = useCollection<Tenant>(tenantsCollection);
 
-        setTenants(updatedTenants);
-        } catch (error) {
-        console.error("Failed to load tenants from localStorage", error);
-        setTenants([]); // Start with empty array on error
-        } finally {
-            setIsInitialized(true);
-        }
-    }
-  }, []);
-
-  // Persist to localStorage whenever tenants change
-  useEffect(() => {
-    if (isInitialized && typeof window !== "undefined") {
-      try {
-        localStorage.setItem('tenants', JSON.stringify(tenants));
-      } catch (error) {
-        console.error("Failed to save tenants to localStorage", error);
-      }
-    }
-  }, [tenants, isInitialized]);
-
-
-  const addTenant = (tenant: Tenant) => {
-    const newTenantWithStatus = {
+  const tenants = useMemo(() => {
+    return (tenantsData || []).map(tenant => ({
       ...tenant,
       rentStatus: updateRentStatusForTenant(tenant),
-    }
-    setTenants((prevTenants) => [newTenantWithStatus, ...prevTenants]);
-  };
-  
-  const updateTenant = (updatedTenant: Tenant) => {
-    // When a tenant is updated, their status should also be recalculated
-    const tenantWithRecalculatedStatus = {
-        ...updatedTenant,
-        rentStatus: updateRentStatusForTenant(updatedTenant)
+      paymentHistory: tenant.paymentHistory || []
+    }));
+  }, [tenantsData]);
+
+  const addTenant = useCallback(async (tenantData: Omit<Tenant, 'id' | 'avatarUrl' | 'rentStatus' | 'paymentHistorySummary' | 'paymentHistory'>) => {
+    if (!tenantsCollection) return;
+    const newDocRef = doc(tenantsCollection);
+    const newTenant: Tenant = {
+        ...tenantData,
+        id: newDocRef.id,
+        avatarUrl: '',
+        rentStatus: 'Pending',
+        paymentHistorySummary: 'New tenant.',
+        paymentHistory: [],
     };
+    const tenantWithStatus = {
+        ...newTenant,
+        rentStatus: updateRentStatusForTenant(newTenant),
+    }
+    await setDoc(newDocRef, tenantWithStatus);
+  }, [tenantsCollection]);
 
-    setTenants((prevTenants) => 
-        prevTenants.map((tenant) => 
-            tenant.id === tenantWithRecalculatedStatus.id ? tenantWithRecalculatedStatus : tenant
-        )
-    );
-  };
-  
-  const logPayment = (tenantId: string, payment: Payment) => {
-    setTenants((prevTenants) =>
-      prevTenants.map((tenant) => {
-        if (tenant.id === tenantId) {
-          const updatedTenant = {
-            ...tenant,
-            paymentHistory: [payment, ...tenant.paymentHistory].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
-          };
-          updatedTenant.rentStatus = updateRentStatusForTenant(updatedTenant);
-          return updatedTenant;
-        }
-        return tenant;
-      })
-    );
-  };
+  const updateTenant = useCallback(async (tenant: Tenant) => {
+    if (!tenantsCollection) return;
+    const docRef = doc(tenantsCollection, tenant.id);
+    const tenantWithStatus = {
+        ...tenant,
+        rentStatus: updateRentStatusForTenant(tenant),
+    }
+    await setDoc(docRef, tenantWithStatus, { merge: true });
+  }, [tenantsCollection]);
 
+  const deleteTenant = useCallback(async (tenantId: string) => {
+    if (!tenantsCollection) return;
+    const docRef = doc(tenantsCollection, tenantId);
+    await deleteDoc(docRef);
+  }, [tenantsCollection]);
+
+  const logPayment = useCallback(async (tenantId: string, payment: Omit<Payment, 'id'>) => {
+    const tenant = tenants.find(t => t.id === tenantId);
+    if (!tenant || !tenantsCollection) return;
+    
+    const newPayment: Payment = {
+        ...payment,
+        id: `p${Date.now()}`
+    }
+
+    const updatedTenant: Tenant = {
+        ...tenant,
+        paymentHistory: [newPayment, ...(tenant.paymentHistory || [])].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+    }
+    await updateTenant(updatedTenant);
+  }, [tenants, tenantsCollection, updateTenant]);
+
+  const isInitialized = !isUserLoading && !isTenantsLoading;
 
   const value = {
     tenants,
     addTenant,
     updateTenant,
+    deleteTenant,
     logPayment,
     isInitialized
   };
