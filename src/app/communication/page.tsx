@@ -5,7 +5,7 @@ import { AutomatedReminder } from "@/components/communication/automated-reminder
 import { MessageLogs } from "@/components/communication/message-logs";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { History, MessagesSquare } from "lucide-react";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 
 function CommunicationPage({ title }: { title?: string }) {
   const [message, setMessage] = useState("");
@@ -31,7 +31,9 @@ function CommunicationPage({ title }: { title?: string }) {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="compose">
-          <AutomatedReminder message={message} setMessage={setMessage} />
+          <Suspense fallback={<div>Loading composer...</div>}>
+            <AutomatedReminder message={message} setMessage={setMessage} />
+          </Suspense>
         </TabsContent>
         <TabsContent value="logs">
             <MessageLogs />
