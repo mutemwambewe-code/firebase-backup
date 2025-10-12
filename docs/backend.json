@@ -1,0 +1,119 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the PropEase Zambia platform.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user entity."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "The first name of the user."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "The last name of the user."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the user.",
+          "format": "email"
+        },
+        "phoneNumber": {
+          "type": "string",
+          "description": "The phone number of the user."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the user account was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the user account was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "firstName",
+        "lastName",
+        "email",
+        "phoneNumber",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profile information. All documents are owned by the user identified by {userId}.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/units/{unitId}",
+        "definition": {
+          "entityName": "unit",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores units owned by user. Documents are owned by the user identified by {userId}.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "unitId",
+              "description": "The unique identifier for the unit."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/tenants/{tenantId}",
+        "definition": {
+          "entityName": "tenant",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores tenants for user. Documents are owned by the user identified by {userId}.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "tenantId",
+              "description": "The unique identifier for the tenant."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure prioritizes authorization independence and ease of maintenance. Each user's data is stored under their `userId`, ensuring clear ownership. The structure uses path-based ownership for `users/{userId}/units` and `users/{userId}/tenants`, simplifying security rules. This design avoids complex `get()` calls within security rules, promoting atomic operations and straightforward debugging. Segregation is achieved by storing user-specific data in separate collections under each user's document.  This segregation ensures that list operations can be secured by simply checking the `request.auth.uid` against the `userId` path parameter. The absence of global roles simplifies access control and debugging."
+  }
+}
