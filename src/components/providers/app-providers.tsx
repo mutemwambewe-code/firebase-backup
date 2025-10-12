@@ -1,3 +1,4 @@
+
 'use client';
 
 import { type ReactNode, createContext, useContext, useEffect, useState } from 'react';
@@ -12,14 +13,22 @@ type ThemeProviderState = {
 const ThemeProviderContext = createContext<ThemeProviderState | undefined>(undefined);
 
 function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window === 'undefined') {
-      return 'system';
-    }
-    return (localStorage.getItem('theme') as Theme) || 'system';
-  });
+  const [theme, setTheme] = useState<Theme>('system');
 
   useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    const storedTheme = localStorage.getItem('theme') as Theme | null;
+    if (storedTheme) {
+      setTheme(storedTheme);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
     const root = window.document.documentElement;
     root.classList.remove('light', 'dark');
 
@@ -29,7 +38,11 @@ function ThemeProvider({ children }: { children: ReactNode }) {
     }
     
     root.classList.add(effectiveTheme);
-    localStorage.setItem('theme', theme);
+    try {
+      localStorage.setItem('theme', theme);
+    } catch (e) {
+      console.error("Failed to set theme in localStorage", e);
+    }
   }, [theme]);
 
   const value = {

@@ -20,6 +20,9 @@ export function TemplateProvider({ children }: { children: ReactNode }) {
 
   // Load from localStorage on mount
   useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
     try {
       const storedTemplates = localStorage.getItem('templates');
       const templatesToLoad = storedTemplates ? JSON.parse(storedTemplates) : initialTemplates;
@@ -33,7 +36,7 @@ export function TemplateProvider({ children }: { children: ReactNode }) {
 
   // Persist to localStorage whenever templates change
   useEffect(() => {
-    if (isInitialized) {
+    if (isInitialized && typeof window !== "undefined") {
       try {
         localStorage.setItem('templates', JSON.stringify(templates));
       } catch (error) {

@@ -15,6 +15,9 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
 
   useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
     try {
       const hasSeenTutorial = localStorage.getItem('hasSeenTutorial');
       if (!hasSeenTutorial) {
@@ -30,6 +33,9 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   };
 
   const closeTutorial = () => {
+    if (typeof window === "undefined") {
+      return;
+    }
     try {
       localStorage.setItem('hasSeenTutorial', 'true');
     } catch (error) {

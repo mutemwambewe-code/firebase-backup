@@ -65,6 +65,9 @@ export function TenantProvider({ children }: { children: ReactNode }) {
 
   // Load from localStorage on mount
   useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
     try {
       const storedTenants = localStorage.getItem('tenants');
       let tenantsToLoad = storedTenants ? JSON.parse(storedTenants) : initialTenantsData;
@@ -85,7 +88,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
 
   // Persist to localStorage whenever tenants change
   useEffect(() => {
-    if (isInitialized) {
+    if (isInitialized && typeof window !== "undefined") {
       try {
         localStorage.setItem('tenants', JSON.stringify(tenants));
       } catch (error) {

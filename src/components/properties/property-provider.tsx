@@ -1,3 +1,4 @@
+
 'use client';
 
 import { createContext, useContext, useState, type ReactNode, useEffect } from 'react';
@@ -19,6 +20,9 @@ export function PropertyProvider({ children }: { children: ReactNode }) {
 
   // Load from localStorage on mount
   useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
     try {
       const storedProperties = localStorage.getItem('properties');
       const propertiesToLoad = storedProperties ? JSON.parse(storedProperties) : initialPropertiesData;
@@ -32,7 +36,7 @@ export function PropertyProvider({ children }: { children: ReactNode }) {
 
   // Persist to localStorage whenever properties change
   useEffect(() => {
-    if (isInitialized) {
+    if (isInitialized && typeof window !== "undefined") {
       try {
         localStorage.setItem('properties', JSON.stringify(properties));
       } catch (error) {

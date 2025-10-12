@@ -19,6 +19,9 @@ export function MessageLogProvider({ children }: { children: ReactNode }) {
 
   // Load from localStorage on mount
   useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
     try {
       const storedLogs = localStorage.getItem('messageLogs');
       const logsToLoad = storedLogs ? JSON.parse(storedLogs) : [];
@@ -32,7 +35,7 @@ export function MessageLogProvider({ children }: { children: ReactNode }) {
 
   // Persist to localStorage whenever logs change
   useEffect(() => {
-    if (isInitialized) {
+    if (isInitialized && typeof window !== "undefined") {
       try {
         localStorage.setItem('messageLogs', JSON.stringify(messageLogs));
       } catch (error) {
