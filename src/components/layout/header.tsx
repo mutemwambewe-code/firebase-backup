@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -16,7 +17,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { navLinks, settingsLink } from './nav-links';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
 import { useAuth, useUser } from '@/firebase';
 import { signOut } from 'firebase/auth';
@@ -34,7 +34,6 @@ export function Header({ showTitle, pageTitle, mobileMenuOpen, setMobileMenuOpen
   const { user } = useUser();
   const auth = useAuth();
   const router = useRouter();
-  const userAvatar = PlaceHolderImages.find(img => img.id === 'user-avatar');
   const pathname = usePathname();
   
   const handleLogout = async () => {
@@ -104,13 +103,9 @@ export function Header({ showTitle, pageTitle, mobileMenuOpen, setMobileMenuOpen
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon" className="overflow-hidden rounded-full">
             <Avatar className="h-9 w-9">
-              {user?.photoURL ? (
+              {user?.photoURL && (
                 <AvatarImage src={user.photoURL} alt={user.displayName || 'User'} />
-              ) : userAvatar ? (
-                 <AvatarImage asChild src={userAvatar.imageUrl}>
-                   <Image src={userAvatar.imageUrl} width={36} height={36} alt="User Avatar" data-ai-hint={userAvatar.imageHint} className="rounded-full" />
-                 </AvatarImage>
-              ) : null}
+              )}
               <AvatarFallback>{user?.displayName?.charAt(0) ?? user?.email?.charAt(0)}</AvatarFallback>
             </Avatar>
           </Button>
