@@ -25,6 +25,8 @@ import { useTenants } from './tenant-provider';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useProperties } from '../properties/property-provider';
+import { AddProperty } from '../properties/add-property';
+import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 
 const formSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -138,26 +140,41 @@ export function AddTenant({ asChild, className }: { asChild?: boolean; className
                 />
             </div>
 
-            <FormField
-              control={form.control}
-              name="property"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Property</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a property" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {properties.map(p => <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {properties.length > 0 ? (
+                <FormField
+                control={form.control}
+                name="property"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Property</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select a property" />
+                        </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                        {properties.map(p => <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+            ) : (
+                <Alert>
+                    <AlertTitle>No Properties Found</AlertTitle>
+                    <AlertDescription className='flex flex-col gap-2'>
+                        You need to add a property before you can add a tenant.
+                        <AddProperty>
+                            <Button size='sm'>
+                                <Plus className='mr-2' />
+                                Add a Property
+                            </Button>
+                        </AddProperty>
+                    </AlertDescription>
+                </Alert>
+            )}
 
             <div className="grid grid-cols-2 gap-4">
                 <FormField

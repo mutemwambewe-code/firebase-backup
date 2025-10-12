@@ -30,7 +30,7 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-export function AddProperty({ children }: { children: React.ReactNode }) {
+export function AddProperty({ children, onPropertyAdded }: { children: React.ReactNode, onPropertyAdded?: (newProperty: Property) => void }) {
   const [open, setOpen] = useState(false);
   const { addProperty } = useProperties();
   const { toast } = useToast();
@@ -46,7 +46,8 @@ export function AddProperty({ children }: { children: React.ReactNode }) {
   });
 
   function onSubmit(values: FormData) {
-    addProperty(values);
+    const newProperty = addProperty(values);
+    
     toast({
       title: 'Property Added!',
       description: `${values.name} has been added to your property list.`,

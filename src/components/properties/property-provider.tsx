@@ -8,7 +8,7 @@ import { useUser } from '@/firebase';
 
 type PropertyContextType = {
   properties: Property[];
-  addProperty: (property: Omit<Property, 'id' | 'occupied'>) => void;
+  addProperty: (property: Omit<Property, 'id' | 'occupied'>) => Property;
   updateProperty: (property: Property) => void;
   deleteProperty: (propertyId: string) => void;
   isInitialized: boolean;
@@ -27,15 +27,18 @@ export function PropertyProvider({ children }: { children: ReactNode }) {
 
   const { data: properties, isLoading: isPropertiesLoading } = useCollection<Property>(propertiesCollection);
 
-  const addProperty = useCallback(async (propertyData: Omit<Property, 'id' | 'occupied'>) => {
-    if (!propertiesCollection) return;
+  const addProperty = useCallback((propertyData: Omit<Property, 'id' | 'occupied'>): Property => {
+    if (!propertiesCollection) {
+        throw new Error("Properties collection not available.");
+    };
     const newDocRef = doc(propertiesCollection);
     const newProperty: Property = {
         ...propertyData,
         id: newDocRef.id,
         occupied: 0,
     };
-    await setDoc(newDocRef, newProperty);
+    setDoc(newDocRef, newProperty);
+    return newProperty;
   }, [propertiesCollection]);
 
   const updateProperty = useCallback(async (property: Property) => {
