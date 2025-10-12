@@ -1,5 +1,6 @@
 
 import { TenantList } from "@/components/tenants/tenant-list";
+import { Suspense } from "react";
 
 export default function TenantsPage({ title }: { title?: string }) {
   return (
@@ -10,7 +11,9 @@ export default function TenantsPage({ title }: { title?: string }) {
           View, manage, and communicate with your tenants.
         </p>
       </div>
-      <TenantList />
+      <Suspense fallback={<div>Loading tenants...</div>}>
+        <TenantList />
+      </Suspense>
     </div>
   );
 }
